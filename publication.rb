@@ -32,8 +32,11 @@ end
 
 
 get '/configure/' do
+  session[:bergcloud_return_url] = params['return_url']
+  session[:bergcloud_error_url] = params['error_url']
+
   url = oauth_client.auth_code.authorize_url(
-    :redirect_uri => params[:return_url],
+    :redirect_uri => url('/configure/return/'),
     :scope => 'repo:status' # Also use notifications?
   )
   redirect url
@@ -45,12 +48,12 @@ end
 get '/configure/return/' do
   begin
     access_token = oauth_client.auth_code.get_token(
-                                  params[:code], :redirect_uri => redirect_uri)
+                                  params[:code], :redirect_uri => url('/configure/return'))
     query = URI.encode_www_form('config[access_token]' => access_token.token)
-    redirect params[:return_url] + '?' + query 
+    redirect session[:bergcloud_return_url] + '?' + query 
   rescue OAuth::Error => e
     puts "OAuth error: #{$!}"
-    redirect params[:error_url]
+    redirect session[:bergcloud_error_url]
   end
 end
 
