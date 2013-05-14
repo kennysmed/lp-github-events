@@ -21,7 +21,78 @@
 
   <ul>
     <% @events.each do |e| %>
-      <li><%= e['repo']['name'] %></li>
+      <li>
+        <%= e['actor']['login'] %>
+
+        <%# Event types: http://developer.github.com/v3/activity/events/types/ %>
+        <% case e['type']
+             when 'CommitCommentEvent' %>
+             commented on commit <%= e['repo']['name'] %>@<%= e['payload']['id'] %>
+             <br />
+            <%= e['payload']['comment']['body'] %>  <!-- TODO: Truncate -->
+
+          <% when 'CreateEvent' %>
+            created
+            <%= e['payload']['ref_type'] %><%# 'branch', 'repository' or 'tag' %>
+
+            <% if e['payload']['ref'] %>
+              <%= e['payload']['ref'] %><%# eg 'master' %> at
+            <% end %>
+            <%= e['repo']['name'] %>
+
+          <% when 'DeleteEvent' %>
+            deleted 
+            <%= e['payload']['ref_type'] %><%# 'branch' or 'tag' %>
+            <%= e['payload']['ref'] %> at <%= e['payload']['ref'] %>
+
+          <% when 'DownloadEvent' %>
+            download
+            TODO
+
+          <% when 'FollowEvent' %>
+            started following <%= e['payload']['target']['login'] %>
+
+          <% when 'ForkEvent' %>
+            forked <%= e['repo']['name'] %>
+            to <%= e['payload']['forkee']['full_name'] %>
+
+          <% when 'ForkApplyEvent' %>
+            fork apply
+            TODO
+
+          <% when 'GistEvent' %>
+            <%= e['payload']['action'] %>d<%# 'create' or 'update' %> 
+            gist: <%= e['payload']['id'] %> 
+
+          <% when 'GollumEvent' %>
+            
+
+          <% when 'IssueCommentEvent' %>
+            commented on issue <%= e['repo']['name'] %>#<%= e['payload']['id'] %>
+            <br />
+            <%= e['payload']['comment']['body'] %>  <!-- TODO: Truncate -->
+
+          <% when 'IssuesEvent' %>
+
+          <% when 'MemberEvent' %>
+
+          <% when 'PublicEvent' %>
+
+          <% when 'PullRequestEvent' %>
+            merged pull request
+
+          <% when 'PullRequestReviewCommentEvent' %>
+
+          <% when 'PushEvent' %>
+            pushed to
+
+          <% when 'TeamAddEvent' %>
+
+          <% when 'WatchEvent' %>
+            starred
+
+        <% end %>
+      </li>
     <% end %>
   </ul>
 
