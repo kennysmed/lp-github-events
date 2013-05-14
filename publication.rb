@@ -32,7 +32,7 @@ end
 
 
 get '/configure/' do
-  url = oauth_client.web_server.authorize_url(
+  url = oauth_client.auth_code.authorize_url(
     :redirect_uri => params[:return_url],
     :scope => 'repo:status' # Also use notifications?
   )
