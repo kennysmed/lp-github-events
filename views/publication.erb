@@ -65,7 +65,7 @@
             gist: <%= e['payload']['id'] %> 
 
           <% when 'GollumEvent' %>
-            
+
 
           <% when 'IssueCommentEvent' %>
             commented on issue <%= e['repo']['name'] %>#<%= e['payload']['id'] %>
@@ -89,7 +89,7 @@
           <% when 'TeamAddEvent' %>
 
           <% when 'WatchEvent' %>
-            starred
+            starred <%= e['repo']['name'] %>
 
         <% end %>
       </li>
