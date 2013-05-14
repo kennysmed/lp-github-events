@@ -36,7 +36,7 @@ get '/configure/' do
   # Send them to Github to approve us.
   url = consumer.auth_code.authorize_url(
     :redirect_uri => url('/configure/return/'),
-    :scope => 'repo:status' # Also use notifications?
+    :scope => 'repo:status,notifications' # Also use notifications?
   )
   redirect url
 end
@@ -71,7 +71,7 @@ get '/edition/' do
   user = JSON.parse(request.get('/user').body)
 
   # Fetch events this user has received:
-  @events = JSON.parse(request.get("/users/#{user['login']}/received_events").body)
+  @events = JSON.parse(request.get("/notifications").body)
 
   # etag Digest::MD5.hexdigest(params[:access_token] + Date.today.strftime('%d%m%Y'))
   # Testing, always changing etag:
