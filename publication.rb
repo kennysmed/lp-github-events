@@ -1,4 +1,5 @@
 # coding: utf-8
+require 'json'
 require 'oauth2'
 require 'sinatra'
 
@@ -61,14 +62,21 @@ get '/configure/return/' do
 end
 
 
+# BERG CLoud is requesting an edition for a user.
+# We'll get an access_token that lets us authenticate as this user.
 get '/edition/' do
   request = OAuth2::AccessToken.new(consumer, params[:access_token]) 
-  response = request.get('/users/:user/received_events').body
+
+  # We need the user's details:
+  user = JSON.parse(request.get('/user').body)
+
+  # Fetch events this user has received:
+  @events = JSON.parse(request.get("/users/#{user['login']}/received_events").body)
+
   # etag Digest::MD5.hexdigest(params[:access_token] + Date.today.strftime('%d%m%Y'))
   # Testing, always changing etag:
   etag Digest::MD5.hexdigest(params[:access_token] + Time.now.strftime('%M%H-%d%m%Y'))
-  # erb :publication
-  response
+  erb :publication
 end
 
 

@@ -4,6 +4,7 @@ GEM
     faraday (0.8.7)
       multipart-post (~> 1.1)
     httpauth (0.2.0)
+    json (1.6.6)
     jwt (0.1.8)
       multi_json (>= 1.5)
     multi_json (1.7.2)
@@ -29,5 +30,6 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
+  json
   oauth2
   sinatra

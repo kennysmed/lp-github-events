@@ -19,5 +19,11 @@
 </head>
 <body>
 
+  <ul>
+    <% @events.each do |e| %>
+      <li><%= e['repo']['name'] %></li>
+    <% end %>
+  </ul>
+
 </body>
 </html>
