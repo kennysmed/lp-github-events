@@ -88,8 +88,18 @@
   <%# How many words do we truncate long strings to? %>
   <% comment_length = 18 %>
 
+  <%# What's the maximum number of events we want to show? %>
+  <%# We only have 1 page (30) events maximum anyway. %>
+  <% max_events = 16 %>
+
   <ul>
-    <% @events.each do |e| %>
+    <% @events.each_with_index do |e, idx| %>
+    
+      <% if idx == (max_events - 1) %>
+        <li>And more on GitHub.com…</li>
+        <% break %>
+      <% end %>
+
       <li>
         <p><span class="actor"><%= e['actor']['login'] %></span>
 

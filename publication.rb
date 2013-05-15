@@ -92,16 +92,22 @@ get '/edition/' do
   @user = JSON.parse(request.get('/user').body)
 
   # Fetch events this user has received:
-  @events = JSON.parse(request.get("/users/#{@user['login']}/received_events").body)
+  event_page = JSON.parse(request.get("/users/#{@user['login']}/received_events").body)
+
+  # We only want events from the past 24 hours.
+  @events = Array.new
+  time_now = Time.now.utc
+  event_page.each do |e|
+    if (time_now - Time.parse(e['created_at'])) <= 86400
+      @events << e
+    else
+      break
+    end 
+  end
 
   if @events.length == 0
     etag Digest::MD5.hexdigest(params[:access_token] + Date.today.strftime('%d%m%Y'))
     return 204, "User #{@user['login']} has no events to show"
-  end
-
-  if (Time.now.utc - Time.parse(@events.first['created_at'])) > 86400
-    etag Digest::MD5.hexdigest(params[:access_token] + Date.today.strftime('%d%m%Y'))
-    return 204, "No events for #{@user['login']} in past 24 hours"
   end
 
   # etag Digest::MD5.hexdigest(params[:access_token] + Date.today.strftime('%d%m%Y'))
