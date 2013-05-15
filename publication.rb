@@ -19,6 +19,19 @@ helpers do
       }
     )
   end
+
+  def pluralize(num, word, ext='s')
+    if num.to_i == 1
+      return num.to_s + ' ' + word
+    else
+      return num.to_s + ' ' + word + ext
+    end
+  end
+
+  def truncate(text, len, end_string='…')
+    words = text.split()
+    return words[0...len].join(' ') + (words.length > len ? end_string : '')
+  end
 end
 
 

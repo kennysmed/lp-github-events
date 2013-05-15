@@ -29,7 +29,7 @@
              when 'CommitCommentEvent' %>
              commented on commit <%= e['repo']['name'] %>@<%= e['payload']['id'] %>
              <br />
-            <%= e['payload']['comment']['body'] %>  <!-- TODO: Truncate -->
+            <%= truncate(e['payload']['comment']['body'], 10) %>
 
           <% when 'CreateEvent' %>
             created
@@ -46,8 +46,7 @@
             <%= e['payload']['ref'] %> at <%= e['payload']['ref'] %>
 
           <% when 'DownloadEvent' %>
-            download
-            TODO
+            uploaded a file to <%= e['repo']['name'] %>
 
           <% when 'FollowEvent' %>
             started following <%= e['payload']['target']['login'] %>
@@ -57,36 +56,72 @@
             <!-- to <%= e['payload']['forkee']['full_name'] %> -->
 
           <% when 'ForkApplyEvent' %>
-            fork apply
-            TODO
+            <%# No longer used: https://github.com/holman/feedback/issues/176 %>
 
           <% when 'GistEvent' %>
             <%= e['payload']['action'] %>d<%# 'create' or 'update' %> 
             gist: <%= e['payload']['id'] %> 
 
           <% when 'GollumEvent' %>
-
+            created/edited <%= pluralize(e['payload']['pages'].length, 'pages') %>
+            on <%= e['repo']['name'] %>
 
           <% when 'IssueCommentEvent' %>
             commented on issue <%= e['repo']['name'] %>#<%= e['payload']['id'] %>
             <br />
-            <%= e['payload']['comment']['body'] %>  <!-- TODO: Truncate -->
+            <%= truncate(e['payload']['comment']['body'], 10) %>
 
           <% when 'IssuesEvent' %>
+            opened issue <%= e['repo']['name'] %>#<%= e['payload']['id'] %>
+            <br />
+            <%= truncate(e['payload']['title'], 10) %>
 
           <% when 'MemberEvent' %>
+            <%= e['payload']['action'] %><%# 'added' %>
+            <%= e['payload']['member']['login'] %> to <%= e['repo']['name'] %>
 
           <% when 'PublicEvent' %>
+            open sourced <%= e['repo']['name'] %>
 
           <% when 'PullRequestEvent' %>
-            merged pull request
+            <%# Not sure if this is the right logic for what should be displayed. %>
+            <% if e['payload']['action'] == 'closed' && e['payload']['pull_request']['merged'] %>
+              merged
+            <% else %>
+              <%# “opened”, “closed”, “synchronize”, or “reopened” %>
+              <%= e['payload']['action'] %>
+            <% end %>
+            pull request
+            <%= e['repo']['name'] %>#<%= e['payload']['number'] %><br />
+            <%= e['payload']['pull_request']['title'] %>
+            <br />
+            <%= pluralize(e['payload']['pull_request']['commits'], 'commit') %>
+            with
+            <%= pluralize(e['payload']['pull_request']['additions'], 'addition') %>
+            and
+            <%= pluralize(e['payload']['pull_request']['deletions'], 'deletion') %>
 
           <% when 'PullRequestReviewCommentEvent' %>
+            <%# Not sure if this formatting is right %>
+            commented on a pull request on
+            <%= e['repo']['name'] %><br />
+            <%= truncate(e['payload']['comment']['body'], 10) %>
 
           <% when 'PushEvent' %>
             pushed to
+            <%= e['payload']['ref'].split('/').last %><%# 'master' of 'ref/heads/master' %>
+            at <%= e['repo']['name'] %>
+            (<%= pluralize(e['payload']['size'], 'commit') %>)
 
           <% when 'TeamAddEvent' %>
+            <%# Not sure if this formatting is right %>
+            added
+            <% if e['payload']['user'] %>
+              <%= e['payload']['user']['login'] %>
+            <% elsif e['payload']['repo'] %>
+              <%= e['payload']['repo']['name'] %>
+            <% end %>
+            to <% e['payload']['team']['name'] %>
 
           <% when 'WatchEvent' %>
             starred <%= e['repo']['name'] %>
