@@ -43,7 +43,7 @@
           <% when 'DeleteEvent' %>
             deleted 
             <%= e['payload']['ref_type'] %><%# 'branch' or 'tag' %>
-            <%= e['payload']['ref'] %> at <%= e['payload']['ref'] %>
+            <%= e['payload']['ref'] %> at <%= e['repo']['name'] %>
 
           <% when 'DownloadEvent' %>
             uploaded a file to <%= e['repo']['name'] %>
@@ -63,7 +63,7 @@
             gist: <%= e['payload']['id'] %> 
 
           <% when 'GollumEvent' %>
-            created/edited <%= pluralize(e['payload']['pages'].length, 'pages') %>
+            created/edited <%= pluralize(e['payload']['pages'].length, 'page') %>
             on <%= e['repo']['name'] %>
 
           <% when 'IssueCommentEvent' %>
@@ -121,7 +121,7 @@
             <% elsif e['payload']['repo'] %>
               <%= e['payload']['repo']['name'] %>
             <% end %>
-            to <% e['payload']['team']['name'] %>
+            to <%= e['payload']['team']['name'] %>
 
           <% when 'WatchEvent' %>
             starred <%= e['repo']['name'] %>

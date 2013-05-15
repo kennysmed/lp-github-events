@@ -104,6 +104,175 @@ end
 
 
 get '/sample/' do
+  @events = [
+    {
+      'actor' => {'login' => 'philgyford'},
+      'type' => 'CommitCommentEvent',
+      'repo' => {
+        'name' => 'bergcloud/how-many-people-in-space',
+      },
+      'payload' => {
+        'id' => 34827,
+        'comment' => {
+          'body' => "Good to see this in there at last"
+        }
+      }
+    },
+    {
+      'actor' => {'login' => 'alicebartlett'},
+      'type' => 'CreateEvent',
+      'repo' => {
+        'name' => 'bergcloud/lp-word-of-the-day',
+      },
+      'payload' => {
+        'ref_type' => 'branch',
+        'ref' => 'master',
+      }
+    },
+    {
+      'actor' => {'login' => 'philgyford'},
+      'type' => 'DeleteEvent',
+      'repo' => {
+        'name' => 'philgyford/samuelpepys-twitter',
+      },
+      'payload' => {
+        'ref_type' => 'branch',
+        'ref' => 'tester',
+      }
+    },
+    {
+      'actor' => {'login' => 'philgyford'},
+      'type' => 'DownloadEvent',
+      'repo' => {
+        'name' => 'philgyford/django-pepysdiary',
+      },
+    },
+    {
+      'actor' => {'login' => 'benterrett'},
+      'type' => 'FollowEvent',
+      'payload' => {
+        'target' => {
+          'login' => 'rex3000'
+        }
+      }
+    },
+    {
+      'actor' => {'login' => 'straup'},
+      'type' => 'ForkEvent',
+      'repo' => {
+        'name' => 'tomtaylor/noticings-iphone',
+      },
+      'payload' => {
+        'forkee' => 'straup/noticings-iphone',
+      },
+    },
+    {
+      'actor' => {'login' => 'straup'},
+      'type' => 'GistEvent',
+      'payload' => {
+        'action' => 'create',
+        'id' => 3973400
+      },
+    },
+    {
+      'actor' => {'login' => 'reinout'},
+      'type' => 'IssueCommentEvent',
+      'repo' => {
+        'name' => 'jezdez/django_compressor',
+      },
+      'payload' => {
+        'id' => 296,
+        'comment' => {
+          'body' => "This is probably related to #226, I think.\n\nThis means that it probably works fine in production, when you collect all the static files in that CACHE dir and serve it from there? And that it fails in development?"
+        }
+      },
+    },
+    {
+      'actor' => {'login' => 'manelclos'},
+      'type' => 'IssuesEvent',
+      'repo' => {
+        'name' => 'alex/django-taggit',
+      },
+      'payload' => {
+        'id' => 103,
+        'title' => "Related Field has invalid lookup: icontains\" in Admin when adding 'tags' to search_fields",
+      },
+    },
+    {
+      'actor' => {'login' => 'undermanager'},
+      'type' => 'MemberEvent',
+      'repo' => {
+        'name' => 'undermanager/georgemichael',
+      },
+      'payload' => {
+        'action' => 'added',
+        'member' => {'login' => 'benterrett'}
+      },
+    },
+    {
+      'actor' => {'login' => 'bergcloud'},
+      'type' => 'PublicEvent',
+      'repo' => {
+        'name' => 'bergcloud/lp_publication_hello_world',
+      },
+    },
+    {
+      'actor' => {'login' => 'alicebartlett'},
+      'type' => 'PullRequestEvent',
+      'repo' => {
+        'name' => 'bergcloud/lp_publication_hello_world',
+      },
+      'payload' => {
+        'action' => 'closed',
+        'number' => 2,
+        'pull_request' => {
+          'title' => "Update Bundler source to use https",
+          'merged' => true,
+          'commits' => 1,
+          'additions' => 2,
+          'deletions' => 2
+        }
+      },
+    },
+    {
+      'actor' => {'login' => 'randomecho'},
+      'type' => 'PullRequestReviewCommentEvent',
+      'repo' => {
+        'name' => 'github/developer.github.com',
+      },
+      'payload' => {
+        'comment' => {
+          'body' => "Well now it looks like there should be \"an elephant\" for some sober reason."
+        }
+      },
+    },
+    {
+      'actor' => {'login' => 'alicebartlett'},
+      'type' => 'PushEvent',
+      'repo' => {
+        'name' => 'bergcloud/lp-how-many-people-in-space',
+      },
+      'payload' => {
+        'ref' => 'ref/heads/master',
+        'size' => 13
+      },
+    },
+    {
+      'actor' => {'login' => 'mrkruger'},
+      'type' => 'TeamAddEvent',
+      'payload' => {
+        'team' => {'name' => 'krugeris'},
+        'user' => {'login' => 'artvanderlay'}
+      }
+    },
+    {
+      'actor' => {'login' => 'tomtaylor'},
+      'type' => 'WatchEvent',
+      'repo' => {
+        'name' => 'modeset/teabag'
+      }
+    }
+  ]
   erb :publication
 end
 
