@@ -16,12 +16,13 @@
       font-family: Arial, sans-serif;
       font-size: 16px;
     }
-    .user,
-    .actor {
-      font-weight: bold;
-    }
     .repo {
       white-space: nowrap;
+    }
+    .user,
+    .actor,
+    .repo-name {
+      font-weight: bold;
     }
     h1, p, li {
       padding-left: 5px;
@@ -80,7 +81,7 @@
         <%# Event types: http://developer.github.com/v3/activity/events/types/ %>
         <% case e['type']
              when 'CommitCommentEvent' %>
-            commented on commit <span class="repo"><%= e['repo']['name'] %>@<%= e['payload']['id'] %></span>
+            commented on commit <span class="repo"><%= format_repo(e['repo']['name']) %>@<%= e['payload']['id'] %></span>
             </p>
             <p class="comment"><%= truncate(e['payload']['comment']['body'], comment_length) %></p>
 
@@ -91,21 +92,21 @@
             <% if e['payload']['ref'] %>
               <%= e['payload']['ref'] %><%# eg 'master' %> at
             <% end %>
-            <span class="repo"><%= e['repo']['name'] %></span>
+            <span class="repo"><%= format_repo(e['repo']['name']) %></span>
 
           <% when 'DeleteEvent' %>
             deleted 
             <%= e['payload']['ref_type'] %><%# 'branch' or 'tag' %>
-            <%= e['payload']['ref'] %> at <span class="repo"><%= e['repo']['name'] %></span>
+            <%= e['payload']['ref'] %> at <span class="repo"><%= format_repo(e['repo']['name']) %></span>
 
           <% when 'DownloadEvent' %>
-            uploaded a file to <span class="repo"><%= e['repo']['name'] %></span>
+            uploaded a file to <span class="repo"><%= format_repo(e['repo']['name']) %></span>
 
           <% when 'FollowEvent' %>
             started following <span class="actor"><%= e['payload']['target']['login'] %></span>
 
           <% when 'ForkEvent' %>
-            forked <span class="repo"><%= e['repo']['name'] %></span>
+            forked <span class="repo"><%= format_repo(e['repo']['name']) %></span>
             <!-- to <span class="repo"><%= e['payload']['forkee']['full_name'] %></span>-->
 
           <% when 'ForkApplyEvent' %>
@@ -117,24 +118,24 @@
 
           <% when 'GollumEvent' %>
             created/edited <%= pluralize(e['payload']['pages'].length, 'page') %>
-            on <span class="repo"><%= e['repo']['name'] %></span>
+            on <span class="repo"><%= format_repo(e['repo']['name']) %></span>
 
           <% when 'IssueCommentEvent' %>
-            commented on issue <span class="repo"><%= e['repo']['name'] %>#<%= e['payload']['id'] %></span>
+            commented on issue <span class="repo"><%= format_repo(e['repo']['name']) %>#<%= e['payload']['id'] %></span>
             </p>
             <p class="comment"><%= truncate(e['payload']['comment']['body'], comment_length) %></p>
 
           <% when 'IssuesEvent' %>
-            opened issue <span class="repo"><%= e['repo']['name'] %>#<%= e['payload']['id'] %></span>
+            opened issue <span class="repo"><%= format_repo(e['repo']['name']) %>#<%= e['payload']['id'] %></span>
             </p>
             <p class="comment"><%= truncate(e['payload']['title'], comment_length) %></p>
 
           <% when 'MemberEvent' %>
             <%= e['payload']['action'] %><%# 'added' %>
-            <span class="actor"><%= e['payload']['member']['login'] %></span> to <span class="repo"><%= e['repo']['name'] %></span>
+            <span class="actor"><%= e['payload']['member']['login'] %></span> to <span class="repo"><%= format_repo(e['repo']['name']) %></span>
 
           <% when 'PublicEvent' %>
-            open sourced <span class="repo"><%= e['repo']['name'] %></span>
+            open sourced <span class="repo"><%= format_repo(e['repo']['name']) %></span>
 
           <% when 'PullRequestEvent' %>
             <%# Not sure if this is the right logic for what should be displayed. %>
@@ -145,7 +146,7 @@
               <%= e['payload']['action'] %>
             <% end %>
             pull request
-            <span class="repo"><%= e['repo']['name'] %>#<%= e['payload']['number'] %></span>
+            <span class="repo"><%= format_repo(e['repo']['name']) %>#<%= e['payload']['number'] %></span>
             </p>
             <p class="comment">
             <%= truncate(e['payload']['pull_request']['title'], comment_length) %>
@@ -159,14 +160,14 @@
           <% when 'PullRequestReviewCommentEvent' %>
             <%# Not sure if this formatting is right %>
             commented on a pull request on
-            <span class="repo"><%= e['repo']['name'] %></span>
+            <span class="repo"><%= format_repo(e['repo']['name']) %></span>
             </p>
             <p class="comment"><%= truncate(e['payload']['comment']['body'], comment_length) %></p>
 
           <% when 'PushEvent' %>
             pushed to
             <%= e['payload']['ref'].split('/').last %><%# 'master' of 'ref/heads/master' %>
-            at <span class="repo"><%= e['repo']['name'] %></span>
+            at <span class="repo"><%= format_repo(e['repo']['name']) %></span>
             </p>
             <p class="comment">(<%= pluralize(e['payload']['size'], 'commit') %>)
 
@@ -181,7 +182,7 @@
             to <%= e['payload']['team']['name'] %>
 
           <% when 'WatchEvent' %>
-            starred <span class="repo"><%= e['repo']['name'] %></span>
+            starred <span class="repo"><%= format_repo(e['repo']['name']) %></span>
 
         <% end %>
         </p>
