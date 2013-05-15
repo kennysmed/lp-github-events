@@ -1,7 +1,7 @@
 {
     "owner_email" : "publishers@bergcloud.com",
     "publication_api_version":"1.0",
-    "name": "Github Events",
+    "name": "GitHub Events",
     "description": "",
     "delivered_on": "every day",
     "delivery_type": "fetch",

@@ -2,34 +2,86 @@
 <meta charset="utf-8">
 <html>
 <head>
-  <title>TITLE</title>
+  <title>GitHub Events</title>
 
   <style type="text/css">
+    body, h1, p, ul, li {
+      padding: 0;
+      margin: 0;
+    }
     body {
       background: #fff;
       color: #000;
       width: 384px;
-      padding: 0;
-      margin: 0;
       font-family: Arial, sans-serif;
       font-size: 16px;
+    }
+    .user,
+    .actor {
+      font-weight: bold;
+    }
+    .repo {
+      white-space: nowrap;
+    }
+    h1, p, li {
+      padding-left: 5px;
+      padding-right: 5px;
+    }
+    li p {
+      padding-left: 0;
+      padding-right: 0;
+    }
+    h1 {
+      font-size: 24px;
+      font-weight: bold;
+      line-height: 30px;
+      border-bottom: 2px solid #000;
+      margin-bottom: 5px;
+    }
+    p {
+      line-height: 20px;
+    }
+    ul {
+      margin-top: 5px;
+      border-top: 1px solid #000;
+      padding-top: 7px;
+    }
+    li {
+      list-style-type: none;
+      line-height: 20px;
+      padding-bottom: 7px;
+      border-bottom: 1px solid #000;
+      margin-bottom: 7px;
+      width: 374px;
+      overflow: hidden;
+    }
+    p.comment {
+      margin-left: 10px;
+      font-size: 14px;
     }
   </style>
 
 </head>
 <body>
 
+  <h1>GitHub Events</h1>
+
+  <p>Events for <span class="user"><%= @user['login'] %></span> from the past 24&nbsp;hours</p>
+
+  <%# How many words do we truncate long strings to? %>
+  <% comment_length = 18 %>
+
   <ul>
     <% @events.each do |e| %>
       <li>
-        <%= e['actor']['login'] %>
+        <p><span class="actor"><%= e['actor']['login'] %></span>
 
         <%# Event types: http://developer.github.com/v3/activity/events/types/ %>
         <% case e['type']
              when 'CommitCommentEvent' %>
-             commented on commit <%= e['repo']['name'] %>@<%= e['payload']['id'] %>
-             <br />
-            <%= truncate(e['payload']['comment']['body'], 10) %>
+            commented on commit <span class="repo"><%= e['repo']['name'] %>@<%= e['payload']['id'] %></span>
+            </p>
+            <p class="comment"><%= truncate(e['payload']['comment']['body'], comment_length) %></p>
 
           <% when 'CreateEvent' %>
             created
@@ -38,22 +90,22 @@
             <% if e['payload']['ref'] %>
               <%= e['payload']['ref'] %><%# eg 'master' %> at
             <% end %>
-            <%= e['repo']['name'] %>
+            <span class="repo"><%= e['repo']['name'] %></span>
 
           <% when 'DeleteEvent' %>
             deleted 
             <%= e['payload']['ref_type'] %><%# 'branch' or 'tag' %>
-            <%= e['payload']['ref'] %> at <%= e['repo']['name'] %>
+            <%= e['payload']['ref'] %> at <span class="repo"><%= e['repo']['name'] %></span>
 
           <% when 'DownloadEvent' %>
-            uploaded a file to <%= e['repo']['name'] %>
+            uploaded a file to <span class="repo"><%= e['repo']['name'] %></span>
 
           <% when 'FollowEvent' %>
-            started following <%= e['payload']['target']['login'] %>
+            started following <span class="actor"><%= e['payload']['target']['login'] %></span>
 
           <% when 'ForkEvent' %>
-            forked <%= e['repo']['name'] %>
-            <!-- to <%= e['payload']['forkee']['full_name'] %> -->
+            forked <span class="repo"><%= e['repo']['name'] %></span>
+            <!-- to <span class="repo"><%= e['payload']['forkee']['full_name'] %></span>-->
 
           <% when 'ForkApplyEvent' %>
             <%# No longer used: https://github.com/holman/feedback/issues/176 %>
@@ -64,24 +116,24 @@
 
           <% when 'GollumEvent' %>
             created/edited <%= pluralize(e['payload']['pages'].length, 'page') %>
-            on <%= e['repo']['name'] %>
+            on <span class="repo"><%= e['repo']['name'] %></span>
 
           <% when 'IssueCommentEvent' %>
-            commented on issue <%= e['repo']['name'] %>#<%= e['payload']['id'] %>
-            <br />
-            <%= truncate(e['payload']['comment']['body'], 10) %>
+            commented on issue <span class="repo"><%= e['repo']['name'] %>#<%= e['payload']['id'] %></span>
+            </p>
+            <p class="comment"><%= truncate(e['payload']['comment']['body'], comment_length) %></p>
 
           <% when 'IssuesEvent' %>
-            opened issue <%= e['repo']['name'] %>#<%= e['payload']['id'] %>
-            <br />
-            <%= truncate(e['payload']['title'], 10) %>
+            opened issue <span class="repo"><%= e['repo']['name'] %>#<%= e['payload']['id'] %></span>
+            </p>
+            <p class="comment"><%= truncate(e['payload']['title'], comment_length) %></p>
 
           <% when 'MemberEvent' %>
             <%= e['payload']['action'] %><%# 'added' %>
-            <%= e['payload']['member']['login'] %> to <%= e['repo']['name'] %>
+            <span class="actor"><%= e['payload']['member']['login'] %></span> to <span class="repo"><%= e['repo']['name'] %></span>
 
           <% when 'PublicEvent' %>
-            open sourced <%= e['repo']['name'] %>
+            open sourced <span class="repo"><%= e['repo']['name'] %></span>
 
           <% when 'PullRequestEvent' %>
             <%# Not sure if this is the right logic for what should be displayed. %>
@@ -92,8 +144,10 @@
               <%= e['payload']['action'] %>
             <% end %>
             pull request
-            <%= e['repo']['name'] %>#<%= e['payload']['number'] %><br />
-            <%= e['payload']['pull_request']['title'] %>
+            <span class="repo"><%= e['repo']['name'] %>#<%= e['payload']['number'] %></span>
+            </p>
+            <p class="comment">
+            <%= truncate(e['payload']['pull_request']['title'], comment_length) %>
             <br />
             <%= pluralize(e['payload']['pull_request']['commits'], 'commit') %>
             with
@@ -104,29 +158,32 @@
           <% when 'PullRequestReviewCommentEvent' %>
             <%# Not sure if this formatting is right %>
             commented on a pull request on
-            <%= e['repo']['name'] %><br />
-            <%= truncate(e['payload']['comment']['body'], 10) %>
+            <span class="repo"><%= e['repo']['name'] %></span>
+            </p>
+            <p class="comment"><%= truncate(e['payload']['comment']['body'], comment_length) %></p>
 
           <% when 'PushEvent' %>
             pushed to
             <%= e['payload']['ref'].split('/').last %><%# 'master' of 'ref/heads/master' %>
-            at <%= e['repo']['name'] %>
-            (<%= pluralize(e['payload']['size'], 'commit') %>)
+            at <span class="repo"><%= e['repo']['name'] %></span>
+            </p>
+            <p class="comment">(<%= pluralize(e['payload']['size'], 'commit') %>)
 
           <% when 'TeamAddEvent' %>
             <%# Not sure if this formatting is right %>
             added
             <% if e['payload']['user'] %>
-              <%= e['payload']['user']['login'] %>
+              <span class="actor"><%= e['payload']['user']['login'] %></span>
             <% elsif e['payload']['repo'] %>
-              <%= e['payload']['repo']['name'] %>
+              <span class="repo"><%= e['payload']['repo']['name'] %></span>
             <% end %>
             to <%= e['payload']['team']['name'] %>
 
           <% when 'WatchEvent' %>
-            starred <%= e['repo']['name'] %>
+            starred <span class="repo"><%= e['repo']['name'] %></span>
 
         <% end %>
+        </p>
       </li>
     <% end %>
   </ul>
