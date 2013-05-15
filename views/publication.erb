@@ -35,25 +35,26 @@
       font-size: 24px;
       font-weight: bold;
       line-height: 30px;
+      padding-bottom: 9px;
       border-bottom: 2px solid #000;
-      margin-bottom: 5px;
+      margin-bottom: 9px;
     }
     p {
       line-height: 20px;
     }
-    ul {
-      margin-top: 5px;
-      border-top: 1px solid #000;
-      padding-top: 7px;
+    p.intro {
+      padding-bottom: 10px;
+      border-bottom: 1px solid #000;
+      margin-bottom: 9px;
     }
     li {
       list-style-type: none;
-      line-height: 20px;
-      padding-bottom: 7px;
-      border-bottom: 1px solid #000;
-      margin-bottom: 7px;
       width: 374px;
       overflow: hidden;
+      line-height: 20px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid #000;
+      margin-bottom: 9px;
     }
     p.comment {
       margin-left: 10px;
@@ -66,7 +67,7 @@
 
   <h1>GitHub Events</h1>
 
-  <p>Events for <span class="user"><%= @user['login'] %></span> from the past 24&nbsp;hours</p>
+  <p class="intro">Events for <span class="user"><%= @user['login'] %></span> from the past 24&nbsp;hours</p>
 
   <%# How many words do we truncate long strings to? %>
   <% comment_length = 18 %>
