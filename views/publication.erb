@@ -204,7 +204,7 @@
             <% elsif e['payload']['repo'] %>
               <span class="repo"><%= e['payload']['repo']['name'] %></span>
             <% end %>
-            to <%= e['payload']['team']['name'] %>
+            to <span class="actor"><%= e['payload']['team']['name'] %></span>
 
           <% when 'WatchEvent' %>
             starred <span class="repo"><%= format_repo(e['repo']['name']) %></span>
