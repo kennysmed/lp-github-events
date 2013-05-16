@@ -24,3 +24,6 @@ eg, for a Heroku app, you'd do this, with your credentials in place:
     $ heroku config:set GITHUB_CLIENT_ID=myclientid GITHUB_CLIENT_SECRET=myclientsecret
 
 
+----
+
+BERG Cloud Developer documentation: http://remote.bergcloud.com/developers/
