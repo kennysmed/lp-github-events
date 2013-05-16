@@ -113,11 +113,72 @@ get %r{/(received|organization)/configure/return/} do |variety|
   begin
     access_token = consumer.auth_code.get_token(params[:code],
         :redirect_uri => url("/#{settings.variety}received/configure/return"))
-    query = URI.encode_www_form('config[access_token]' => access_token.token)
-    redirect session[:bergcloud_return_url] + '?' + query 
   rescue OAuth::Error => e
     puts "OAuth error: #{$!}"
     redirect session[:bergcloud_error_url]
+  end
+
+  if settings.variety == 'organization'
+    # We need to ask the user to choose an organization.
+    # Save the access_token for after that's done.
+    session[:access_token] = access_token.token
+    redirect url("/organization/select-org/")
+
+  else
+    # Standard version for a user's events. No local config required.
+    # Send them straight back to the Remote.
+    query = URI.encode_www_form('config[access_token]' => access_token.token)
+    redirect session[:bergcloud_return_url] + '?' + query 
+  end
+end
+
+
+# User has come here after authenticating with GitHub, and they're using the
+# Organization variety of publication.
+# Now they need to choose one of their organizations.
+get '/organization/select-org/' do
+  set_frequency('organization')
+
+  request = OAuth2::AccessToken.new(consumer, session[:access_token]) 
+
+  # We need the user's details:
+  @user = JSON.parse(request.get('/user').body)
+
+  @orgs = JSON.parse(request.get("/users/#{@user['login']}/orgs").body)
+
+  erb :select_org
+end
+
+
+# The user has selected one of their organizations in our custom form, so now
+# we need to check it's valid then, if so, send them back to Remote with the
+# organization ID in the config vars.
+post '/organization/select-org/' do
+  set_frequency('organization')
+
+  if params[:organization]
+    # Check it's a valid org.
+    request = OAuth2::AccessToken.new(consumer, session[:access_token]) 
+
+    # We need the user's details:
+    @user = JSON.parse(request.get('/user').body)
+
+    @orgs = JSON.parse(request.get("/users/#{@user['login']}/orgs").body)
+
+    if @orgs.find {|org| org['id'] == params[:organization].to_i}
+      # Valid organization ID.
+      query = URI.encode_www_form(
+                              'config[access_token]' => session[:access_token],
+                              'config[organization]' => params[:organization])
+      redirect session[:bergcloud_return_url] + '?' + query 
+
+    else
+      session[:form_error] = "Please select an organization"
+      redirect url("/organization/select-org/")
+    end
+  else
+    session[:form_error] = "Please select an organization"
+    redirect url("/organization/select-org/")
   end
 end
 
@@ -132,8 +193,22 @@ get %r{/(received|organization)/edition/} do |variety|
   # We need the user's details:
   @user = JSON.parse(request.get('/user').body)
 
-  # Fetch events this user has received:
-  event_page = JSON.parse(request.get("/users/#{@user['login']}/received_events").body)
+  if settings.variety == 'organization'
+    @orgs = JSON.parse(request.get("/users/#{@user['login']}/orgs").body)
+
+    if @orgs.find {|org| org['id'] == params[:organization].to_i}
+      # TODO: Get org's events.
+      # TODO: Change display to represent organisation.
+      # 
+
+    else
+      # TODO: Some kind of error thing.
+
+    end
+  else
+    # Fetch events this user has received:
+    event_page = JSON.parse(request.get("/users/#{@user['login']}/received_events").body)
+  end
 
   # We only want events from the past 24 hours.
   @events = Array.new

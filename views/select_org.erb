@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title><%= format_title %></title>
+  <style type="text/css">
+    body {
+      background: #F8F6F3;
+      color: #000;
+      font-family: Helvetica, Arial, sans-serif;
+      margin: 10px;
+    }
+    .config {
+      border: 1px solid #E8E6E3;
+      background: #fff;
+      padding: 1em 20px;
+      max-width: 420px;
+    }
+    .config-title {
+      margin: 0 0 0.5em 0;
+      font-size: 1.5em;
+    }
+    .config-intro {
+      font-weight: bold;
+      margin: 1em 0;
+      line-height: 1.3em;
+    }
+    .config-error {
+      color: #900;
+    }
+    .config-list,
+    .config-list li {
+      margin: 0;
+      padding: 0; 
+    }
+    .config-list li {
+      list-style-type: none;
+      line-height: 1.5em;
+      color: #999;
+    }
+    .config-list-properties li {
+      margin-left: 20px;
+    }
+    .config-list li label {
+      color: #000;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    .config-submit {
+      background: #FED84D;
+      border: 1px solid #EEC83D;
+      color: #000;
+      font-family: Helvetica, Arial, sans-serif;
+      font-size: 1em;
+      font-weight: bold;
+      padding: 0.5em 10px;
+      margin-left: 40px;
+    }
+    .config-submit:hover {
+      background: #FCCA2E;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div class="config">
+    <h1 class="config-title"><%= format_title %></title></h1>
+
+    <form method="post" action="<%= url("/#{settings.variety}/select-org/") %>">
+      
+      <% if orgs.length == 0 %>
+        <p class="config-intro">You're not a member of any organizations on GitHub. I'm afraid all we can do is suggest you go back and <a href="http://remote.bergcloud.com/publications/">choose a different publication</a>.</p>
+
+      <% elsif orgs.length == 1 %>
+        <p class="config-intro">You're only a member of one organization on GitHub, <strong><%= @orgs[0]['login'] %></strong>, so you'll receive events for it.</p>
+
+        <input type="hidden" name="organization" value="<%= @orgs[0]['id'] %>" />
+
+      <% else %>
+        <p class="config-intro">Please choose which organization you want to view events for.</p>
+
+        <% if @form_error %>
+          <p class="config-error"><%= @form_error %></p>
+        <% end %>
+
+        <ul class="config-list">
+          <% @orgs.each do |org| %>
+            <li><input type="radio" name="organization" value="<%= org['id'] %>" id="org-<%= org['id'] %>" />
+              <label for="org-<%= org['id'] %>"><img src="<%= org['avatar_url'] %>" width="80" height="80" alt="Avatar for <%= org['login'] %>"> <%= org['login'] %></label>
+            </li>
+          <% end %>
+        </ul>
+
+      <% end %>
+
+      <p>
+        <input type="submit" value="Use this organization" class="config-submit" />
+      </p>
+    </form>
+  </div> <!-- .config -->
+
+</body>
+</html>
