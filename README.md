@@ -1,6 +1,6 @@
-# Github Events Little Printer publication
+# GitHub Events
 
-Displays the contents of your GitHub News Feed from the past 24 hours. See a sample at http://remote.bergcloud.com/publications/149
+A Little Printer publication that displays the contents of your GitHub News Feed from the past 24 hours. See a sample at http://remote.bergcloud.com/publications/149
 
 This is a Ruby + Sinatra app, which might be useful as a demonstration of authenticating a subscriber with their GitHub account via OAuth2. No other configuration by the subscriber is required.
 
