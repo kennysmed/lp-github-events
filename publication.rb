@@ -6,10 +6,24 @@ require 'sinatra'
 enable :sessions
 
 configure do
+  # The different varieties of data we can display.
+  # Each publication has a different variety.
+  # The variety is the top-level directory.
+  #   * received - The user's public and private 'received events'.
+  #   * organization - The events for an organization.
+  set :valid_varieties, ['received', 'organization']
+
+  # The default variety, which can be changed with different URLs.
+  set :variety, 'received'
 end
 
 
 helpers do
+  # Set the variety setting to `variety` if it's valid. Else, stay with default.
+  def set_variety(variety)
+    settings.variety = variety if settings.valid_varieties.include?(variety)
+  end
+
   def consumer
     OAuth2::Client.new(ENV['GITHUB_CLIENT_ID'], ENV['GITHUB_CLIENT_SECRET'],
       {
@@ -18,6 +32,15 @@ helpers do
         :token_url => 'https://github.com/login/oauth/access_token'
       }
     )
+  end
+
+  # So that we keep the title consistent in all the places.
+  def format_title
+    title = "GitHub Events"
+    if settings.variety == 'organization'
+      title += " for Organizations"
+    end
+    return title
   end
 
   # Used in the template for pluralizing words.
@@ -43,20 +66,34 @@ helpers do
 end
 
 
-get '/received/' do
-  "Little Printer GitHub Events Publication"
+get %r{/(received|organization)/meta.json} do |variety|
+  set_variety(variety)
+  content_type :json
+  erb :meta
+end
+
+
+get %r{/(received|organization)/} do |variety|
+  set_variety(variety)
+  output = "Little Printer GitHub Events Publication"
+  if variety == 'organization'
+    output += " for an Organization"
+  end
+  output
 end
 
 
 # The user has just come here from BERG Cloud to authenticate with GitHub.
-get '/received/configure/' do
+get %r{/(received|organization)/configure/} do |variety|
+  set_variety(variety)
+
   # Save these for use when the user returns.
   session[:bergcloud_return_url] = params['return_url']
   session[:bergcloud_error_url] = params['error_url']
 
   # Send them to GitHub to approve us.
   url = consumer.auth_code.authorize_url(
-    :redirect_uri => url('/received/configure/return/'),
+    :redirect_uri => url("/#{settings.variety}/configure/return/"),
     :scope => 'repo:status' # Also use notifications?
   )
   redirect url
@@ -66,14 +103,16 @@ end
 # The user has returned here from approving us (or not) at GitHub.
 # URL be a subdirectory of the calling URL.
 # This URL is also specified in the GitHub application.
-get '/received/configure/return/' do
+get %r{/(received|organization)/configure/return/} do |variety|
+  set_variety(variety)
+
   # If there's no code returned, something went wrong, or the user declined
   # to authenticate us. This is the least nasty thing we can do right now:
   redirect session[:bergcloud_error_url] if !params[:code]
 
   begin
-    access_token = consumer.auth_code.get_token(
-                                  params[:code], :redirect_uri => url('/received/configure/return'))
+    access_token = consumer.auth_code.get_token(params[:code],
+        :redirect_uri => url("/#{settings.variety}received/configure/return"))
     query = URI.encode_www_form('config[access_token]' => access_token.token)
     redirect session[:bergcloud_return_url] + '?' + query 
   rescue OAuth::Error => e
@@ -85,7 +124,9 @@ end
 
 # BERG CLoud is requesting an edition for a user.
 # We'll get an access_token that lets us authenticate as this user.
-get '/received/edition/' do
+get %r{/(received|organization)/edition/} do |variety|
+  set_variety(variety)
+
   request = OAuth2::AccessToken.new(consumer, params[:access_token]) 
 
   # We need the user's details:
@@ -117,7 +158,9 @@ get '/received/edition/' do
 end
 
 
-get '/received/sample/' do
+get %r{/(received|organization)/sample/} do |variety|
+  set_variety(variety)
+
   @user = {'login' => 'jherekc'}
   @events = [
     {
@@ -292,6 +335,7 @@ get '/received/sample/' do
 end
 
 
-post '/received/validate_config/' do
+post %r{/(received|organization)/validate_config/} do |variety|
+  set_variety(variety)
 end
 
