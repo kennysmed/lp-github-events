@@ -10,9 +10,11 @@ Also see the [GitHub Developer API](http://developer.github.com/) for more thing
 
 You'll need to [register an OAuth application on GitHub](https://github.com/settings/applications/new).
 
-The Main URL will be the top-level (eg `http://my-app-name.herokuapp.com/`) although there's nothing useful there in this app.
+The Main URL will be the top-level (eg `http://my-app-name.herokuapp.com/received/`) although there's nothing useful there in this app.
 
-The Callback URL will, to follow the same example, like `http://my-app-name.herokuapp.com/configure/return/`.
+(Note: We use a directory, `/received/`, for this publication so we can use the same code for slight variations in future.)
+
+The Callback URL will, to follow the same example, like `http://my-app-name.herokuapp.com/received/configure/return/`.
 
 Once created, GitHub will supply you with an ID and Secret which our code expects to be in these environment variables:
 

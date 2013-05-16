@@ -43,20 +43,20 @@ helpers do
 end
 
 
-get '/' do
+get '/received/' do
   "Little Printer GitHub Events Publication"
 end
 
 
 # The user has just come here from BERG Cloud to authenticate with GitHub.
-get '/configure/' do
+get '/received/configure/' do
   # Save these for use when the user returns.
   session[:bergcloud_return_url] = params['return_url']
   session[:bergcloud_error_url] = params['error_url']
 
   # Send them to GitHub to approve us.
   url = consumer.auth_code.authorize_url(
-    :redirect_uri => url('/configure/return/'),
+    :redirect_uri => url('/received/configure/return/'),
     :scope => 'repo:status' # Also use notifications?
   )
   redirect url
@@ -66,14 +66,14 @@ end
 # The user has returned here from approving us (or not) at GitHub.
 # URL be a subdirectory of the calling URL.
 # This URL is also specified in the GitHub application.
-get '/configure/return/' do
+get '/received/configure/return/' do
   # If there's no code returned, something went wrong, or the user declined
   # to authenticate us. This is the least nasty thing we can do right now:
   redirect session[:bergcloud_error_url] if !params[:code]
 
   begin
     access_token = consumer.auth_code.get_token(
-                                  params[:code], :redirect_uri => url('/configure/return'))
+                                  params[:code], :redirect_uri => url('/received/configure/return'))
     query = URI.encode_www_form('config[access_token]' => access_token.token)
     redirect session[:bergcloud_return_url] + '?' + query 
   rescue OAuth::Error => e
@@ -85,7 +85,7 @@ end
 
 # BERG CLoud is requesting an edition for a user.
 # We'll get an access_token that lets us authenticate as this user.
-get '/edition/' do
+get '/received/edition/' do
   request = OAuth2::AccessToken.new(consumer, params[:access_token]) 
 
   # We need the user's details:
@@ -117,7 +117,7 @@ get '/edition/' do
 end
 
 
-get '/sample/' do
+get '/received/sample/' do
   @user = {'login' => 'jherekc'}
   @events = [
     {
@@ -292,6 +292,6 @@ get '/sample/' do
 end
 
 
-post '/validate_config/' do
+post '/received/validate_config/' do
 end
 
