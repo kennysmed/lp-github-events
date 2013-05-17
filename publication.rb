@@ -30,14 +30,14 @@ helpers do
   end
 
   def consumer
-    if settings.variety == 'organization'
-      github_client_id = ENV['GITHUB_CLIENT_ID_ORGANIZATION']
-      github_client_secret = ENV['GITHUB_CLIENT_SECRET_ORGANIZATION']
-    else
-      github_client_id = ENV['GITHUB_CLIENT_ID_RECEIVED']
-      github_client_secret = ENV['GITHUB_CLIENT_SECRET_RECEIVED']
-    end
-    OAuth2::Client.new(github_client_id, github_client_secret,
+    # if settings.variety == 'organization'
+    #   github_client_id = ENV['GITHUB_CLIENT_ID_ORGANIZATION']
+    #   github_client_secret = ENV['GITHUB_CLIENT_SECRET_ORGANIZATION']
+    # else
+    #   github_client_id = ENV['GITHUB_CLIENT_ID_RECEIVED']
+    #   github_client_secret = ENV['GITHUB_CLIENT_SECRET_RECEIVED']
+    # end
+    OAuth2::Client.new(ENV['GITHUB_CLIENT_ID'], ENV['GITHUB_CLIENT_SECRET'],
       {
         :site => 'https://api.github.com',
         :authorize_url => 'https://github.com/login/oauth/authorize',
@@ -110,7 +110,7 @@ get %r{^/(received|organization)/configure/$} do |variety|
 
   # Send them to GitHub to approve us.
   url = consumer.auth_code.authorize_url(
-    :redirect_uri => url("/#{settings.variety}/configure/return/"),
+    :redirect_uri => url("/#{settings.variety}/return/"),
     :scope => 'repo:status' # Also use notifications?
   )
   redirect url
@@ -118,9 +118,7 @@ end
 
 
 # The user has returned here from approving us (or not) at GitHub.
-# URL be a subdirectory of the calling URL.
-# This URL is also specified in the GitHub application.
-get %r{^/(received|organization)/configure/return/$} do |variety|
+get %r{^/(received|organization)/return/$} do |variety|
   set_variety(variety)
 
   # If there's no code returned, something went wrong, or the user declined
@@ -129,7 +127,7 @@ get %r{^/(received|organization)/configure/return/$} do |variety|
 
   begin
     access_token = consumer.auth_code.get_token(params[:code],
-        :redirect_uri => url("/#{settings.variety}received/configure/return"))
+                          :redirect_uri => url("/#{settings.variety}/return/"))
   rescue OAuth2::Error => e
     return "OAuth2 error: #{$!}"
     # redirect session[:bergcloud_error_url]
