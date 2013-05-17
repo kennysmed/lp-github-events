@@ -67,10 +67,10 @@
 
     <form method="post" action="<%= url("/#{settings.variety}/select-org/") %>">
       
-      <% if orgs.length == 0 %>
+      <% if @orgs.length == 0 %>
         <p class="config-intro">You're not a member of any organizations on GitHub. I'm afraid all we can do is suggest you go back and <a href="http://remote.bergcloud.com/publications/">choose a different publication</a>.</p>
 
-      <% elsif orgs.length == 1 %>
+      <% elsif @orgs.length == 1 %>
         <p class="config-intro">You're only a member of one organization on GitHub, <strong><%= @orgs[0]['login'] %></strong>, so you'll receive events for it.</p>
 
         <input type="hidden" name="organization" value="<%= @orgs[0]['id'] %>" />
