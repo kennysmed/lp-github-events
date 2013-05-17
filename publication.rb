@@ -6,10 +6,10 @@ require 'sinatra'
 enable :sessions
 
 configure do
-  if settings.development?
-    # So we can see what's going wrong on Heroku.
-    set :show_exceptions, true
-  end
+  # if settings.development?
+  #   # So we can see what's going wrong on Heroku.
+  #   set :show_exceptions, true
+  # end
   
   # The different varieties of data we can display.
   # Each publication has a different variety.
