@@ -28,22 +28,24 @@
       color: #900;
     }
     .config-list,
-    .config-list li {
+    .config-list-item {
       margin: 0;
       padding: 0; 
     }
-    .config-list li {
+    .config-list-item {
       list-style-type: none;
       line-height: 1.5em;
       color: #999;
     }
-    .config-list-properties li {
-      margin-left: 20px;
-    }
-    .config-list li label {
+    .config-list-item label {
       color: #000;
       cursor: pointer;
       font-weight: bold;
+    }
+    .config-list-item-logo {
+      vertical-align: middle;
+      margin-left: 10px;
+      margin-right: 10px;
     }
     .config-submit {
       background: #FED84D;
@@ -53,7 +55,6 @@
       font-size: 1em;
       font-weight: bold;
       padding: 0.5em 10px;
-      margin-left: 40px;
     }
     .config-submit:hover {
       background: #FCCA2E;
@@ -71,12 +72,12 @@
         <p class="config-intro">You're not a member of any organizations on GitHub. I'm afraid all we can do is suggest you go back and <a href="http://remote.bergcloud.com/publications/">choose a different publication</a>.</p>
 
       <% elsif @orgs.length == 1 %>
-        <p class="config-intro">You're only a member of one organization on GitHub, <strong><%= @orgs[0]['login'] %></strong>, so you'll receive events for it.</p>
+        <p class="config-intro">You're only a member of one organization on GitHub, <strong><%= @orgs[0]['login'] %></strong>, so you'll receive events for that on Little Printer.</p>
 
         <input type="hidden" name="organization" value="<%= @orgs[0]['id'] %>" />
 
       <% else %>
-        <p class="config-intro">Please choose which organization you want to view events for.</p>
+        <p class="config-intro">Please choose which organization you want to view events for on your Little Printer.</p>
 
         <% if @form_error %>
           <p class="config-error"><%= @form_error %></p>
@@ -84,8 +85,8 @@
 
         <ul class="config-list">
           <% @orgs.each do |org| %>
-            <li><input type="radio" name="organization" value="<%= org['id'] %>" id="org-<%= org['id'] %>" />
-              <label for="org-<%= org['id'] %>"><img src="<%= org['avatar_url'] %>" width="80" height="80" alt="Avatar for <%= org['login'] %>"> <%= org['login'] %></label>
+            <li class="config-list-item"><input type="radio" name="organization" value="<%= org['id'] %>" id="org-<%= org['id'] %>" />
+              <label for="org-<%= org['id'] %>"><img class="config-list-item-logo" src="<%= org['avatar_url'] %>" width="80" height="80" alt="Avatar for <%= org['login'] %>"> <%= org['login'] %></label>
             </li>
           <% end %>
         </ul>
@@ -93,7 +94,7 @@
       <% end %>
 
       <p>
-        <input type="submit" value="Use this organization" class="config-submit" />
+        <input type="submit" value="Choose this organization" class="config-submit" />
       </p>
     </form>
   </div> <!-- .config -->

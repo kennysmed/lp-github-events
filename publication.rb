@@ -159,6 +159,11 @@ get '/organization/select-org/' do
 
   @orgs = JSON.parse(request.get("/users/#{@user['login']}/orgs").body)
 
+  if session[:form_error]
+    @form_error = session[:form_error]
+    session[:form_error] = nil
+  end
+
   erb :select_org
 end
 
