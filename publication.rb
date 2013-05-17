@@ -66,14 +66,14 @@ helpers do
 end
 
 
-get %r{/(received|organization)/meta.json} do |variety|
+get %r{^/(received|organization)/meta.json$} do |variety|
   set_variety(variety)
   content_type :json
   erb :meta
 end
 
 
-get %r{/(received|organization)/} do |variety|
+get %r{^/(received|organization)/$} do |variety|
   set_variety(variety)
   output = "Little Printer GitHub Events Publication"
   if variety == 'organization'
@@ -84,7 +84,7 @@ end
 
 
 # The user has just come here from BERG Cloud to authenticate with GitHub.
-get %r{/(received|organization)/configure/} do |variety|
+get %r{^/(received|organization)/configure/$} do |variety|
   set_variety(variety)
 
   # Save these for use when the user returns.
@@ -103,7 +103,7 @@ end
 # The user has returned here from approving us (or not) at GitHub.
 # URL be a subdirectory of the calling URL.
 # This URL is also specified in the GitHub application.
-get %r{/(received|organization)/configure/return/} do |variety|
+get %r{^/(received|organization)/configure/return/$} do |variety|
   set_variety(variety)
 
   # If there's no code returned, something went wrong, or the user declined
@@ -185,7 +185,7 @@ end
 
 # BERG CLoud is requesting an edition for a user.
 # We'll get an access_token that lets us authenticate as this user.
-get %r{/(received|organization)/edition/} do |variety|
+get %r{^/(received|organization)/edition/$} do |variety|
   set_variety(variety)
 
   # Testing, always changing etag:
@@ -199,6 +199,8 @@ get %r{/(received|organization)/edition/} do |variety|
 
   if settings.variety == 'organization'
     @orgs = JSON.parse(request.get("/users/#{@user['login']}/orgs").body)
+
+    puts @orgs
 
     if @orgs.find {|org| org['id'] == params[:organization].to_i}
       event_page = JSON.parse(request.get(
@@ -234,7 +236,7 @@ get %r{/(received|organization)/edition/} do |variety|
 end
 
 
-get %r{/(received|organization)/sample/} do |variety|
+get %r{^/(received|organization)/sample/$} do |variety|
   set_variety(variety)
 
   @user = {'login' => 'jherekc'}
