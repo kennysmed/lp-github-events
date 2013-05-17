@@ -120,7 +120,7 @@ get %r{^/(received|organization)/configure/return/$} do |variety|
   begin
     access_token = consumer.auth_code.get_token(params[:code],
         :redirect_uri => url("/#{settings.variety}received/configure/return"))
-  rescue OAuth::Error => e
+  rescue OAuth2::Error => e
     puts "OAuth error: #{$!}"
     redirect session[:bergcloud_error_url]
   end
