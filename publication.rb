@@ -150,7 +150,7 @@ end
 # Organization variety of publication.
 # Now they need to choose one of their organizations.
 get '/organization/select-org/' do
-  set_frequency('organization')
+  set_variety('organization')
 
   request = OAuth2::AccessToken.new(consumer, session[:access_token]) 
 
@@ -167,7 +167,7 @@ end
 # we need to check it's valid then, if so, send them back to Remote with the
 # organization ID in the config vars.
 post '/organization/select-org/' do
-  set_frequency('organization')
+  set_variety('organization')
 
   if params[:organization]
     # Check it's a valid org.
