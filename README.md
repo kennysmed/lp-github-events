@@ -26,6 +26,8 @@ eg, for a Heroku app, you'd do this, with your credentials in place:
     $ heroku config:set GITHUB_CLIENT_ID_RECEIVED=myreceivedclientid GITHUB_CLIENT_SECRET_RECEIVED=myreceivedclientsecret GITHUB_CLIENT_ID_ORGANIZATION=myorganizationclientid GITHUB_CLIENT_SECRET_ORGANIZATION=myorganizationclientsecret
 
 
+Set `RACK_ENV` to either `production` or `development`.
+
 ----
 
 BERG Cloud Developer documentation: http://remote.bergcloud.com/developers/
