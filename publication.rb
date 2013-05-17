@@ -10,7 +10,7 @@ configure do
     # So we can see what's going wrong on Heroku.
     set :show_exceptions, true
   end
-  
+
   # The different varieties of data we can display.
   # Each publication has a different variety.
   # The variety is the top-level directory.
@@ -78,6 +78,11 @@ helpers do
 end
 
 
+get '/favicon.ico' do
+  status 410
+end
+
+
 get %r{^/(received|organization)/meta.json$} do |variety|
   set_variety(variety)
   content_type :json
@@ -126,8 +131,8 @@ get %r{^/(received|organization)/configure/return/$} do |variety|
     access_token = consumer.auth_code.get_token(params[:code],
         :redirect_uri => url("/#{settings.variety}received/configure/return"))
   rescue OAuth2::Error => e
-    puts "OAuth error: #{$!}"
-    redirect session[:bergcloud_error_url]
+    return "OAuth2 error: #{$!}"
+    # redirect session[:bergcloud_error_url]
   end
 
   if settings.variety == 'organization'
