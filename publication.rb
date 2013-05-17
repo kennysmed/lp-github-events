@@ -188,6 +188,10 @@ end
 get %r{/(received|organization)/edition/} do |variety|
   set_variety(variety)
 
+  # Testing, always changing etag:
+  # etag Digest::MD5.hexdigest(params[:access_token] + Time.now.strftime('%M%H-%d%m%Y'))
+  etag Digest::MD5.hexdigest(params[:access_token] + Date.today.strftime('%d%m%Y'))
+
   request = OAuth2::AccessToken.new(consumer, params[:access_token]) 
 
   # We need the user's details:
@@ -197,17 +201,17 @@ get %r{/(received|organization)/edition/} do |variety|
     @orgs = JSON.parse(request.get("/users/#{@user['login']}/orgs").body)
 
     if @orgs.find {|org| org['id'] == params[:organization].to_i}
-      # TODO: Get org's events.
-      # TODO: Change display to represent organisation.
-      # 
+      event_page = JSON.parse(request.get(
+        "/users/#{@user['login']}/events/orgs/#{params[:organization]}").body)
 
     else
-      # TODO: Some kind of error thing.
-
+      # The organization ID isn't one the user has access to.
+      return 204, "User #{@user['login']} doesn't have access to organization #{params[:organization]}"
     end
   else
-    # Fetch events this user has received:
-    event_page = JSON.parse(request.get("/users/#{@user['login']}/received_events").body)
+    # Fetch all events this user has received:
+    event_page = JSON.parse(request.get(
+                              "/users/#{@user['login']}/received_events").body)
   end
 
   # We only want events from the past 24 hours.
@@ -222,13 +226,10 @@ get %r{/(received|organization)/edition/} do |variety|
   end
 
   if @events.length == 0
-    etag Digest::MD5.hexdigest(params[:access_token] + Date.today.strftime('%d%m%Y'))
-    return 204, "User #{@user['login']} has no events to show"
+    return 204, "User #{@user['login']} has no events to show today"
   end
 
-  etag Digest::MD5.hexdigest(params[:access_token] + Date.today.strftime('%d%m%Y'))
-  # Testing, always changing etag:
-  # etag Digest::MD5.hexdigest(params[:access_token] + Time.now.strftime('%M%H-%d%m%Y'))
+  content_type 'text/html; charset=utf-8'
   erb :publication
 end
 
@@ -406,6 +407,7 @@ get %r{/(received|organization)/sample/} do |variety|
       }
     }
   ]
+  content_type 'text/html; charset=utf-8'
   erb :publication
 end
 
