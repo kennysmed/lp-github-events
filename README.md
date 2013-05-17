@@ -8,23 +8,18 @@ Also see the [GitHub Developer API](http://developer.github.com/) for more thing
 
 ## Setup
 
-You'll need to [register two OAuth applications on GitHub](https://github.com/settings/applications/new); one for each of the Received and Organization events publications.
+You'll need to [register an OAuth applications on GitHub](https://github.com/settings/applications/new).
 
-The Main URL will be the top-level (eg `http://my-app-name.herokuapp.com/received/`) although there's nothing useful there in this app.
+Set both of the application's URLs to the top level of this site, shared by both of the publications, eg `http://my-app-name.herokuapp.com/`. 
 
-The Callback URL will, to follow the same example, like `http://my-app-name.herokuapp.com/received/configure/return/`.
+Once created, GitHub will supply you with an ID and Secret, which our code expects to be in these environment variables:
 
-Once created, GitHub will supply you with an ID and Secret for each application, which our code expects to be in these environment variables:
-
-    GITHUB_CLIENT_ID_RECEIVED
-    GITHUB_CLIENT_SECRET_RECEIVED
-    GITHUB_CLIENT_ID_ORGANIZATION
-    GITHUB_CLIENT_SECRET_ORGANIZATION
+    GITHUB_CLIENT_ID
+    GITHUB_CLIENT_SECRET
 
 eg, for a Heroku app, you'd do this, with your credentials in place:
 
-    $ heroku config:set GITHUB_CLIENT_ID_RECEIVED=myreceivedclientid GITHUB_CLIENT_SECRET_RECEIVED=myreceivedclientsecret GITHUB_CLIENT_ID_ORGANIZATION=myorganizationclientid GITHUB_CLIENT_SECRET_ORGANIZATION=myorganizationclientsecret
-
+    $ heroku config:set GITHUB_CLIENT_ID=myclientid GITHUB_CLIENT_SECRET=myclientsecret
 
 Set `RACK_ENV` to either `production` or `development`.
 

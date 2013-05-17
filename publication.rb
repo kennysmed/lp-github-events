@@ -5,6 +5,10 @@ require 'sinatra'
 
 enable :sessions
 
+raise 'GITHUB_CLIENT_ID is not set' if !ENV['GITHUB_CLIENT_ID']
+raise 'GITHUB_CLIENT_SECRET is not set' if !ENV['GITHUB_CLIENT_SECRET']
+
+
 configure do
   if settings.development?
     # So we can see what's going wrong on Heroku.
@@ -30,13 +34,6 @@ helpers do
   end
 
   def consumer
-    # if settings.variety == 'organization'
-    #   github_client_id = ENV['GITHUB_CLIENT_ID_ORGANIZATION']
-    #   github_client_secret = ENV['GITHUB_CLIENT_SECRET_ORGANIZATION']
-    # else
-    #   github_client_id = ENV['GITHUB_CLIENT_ID_RECEIVED']
-    #   github_client_secret = ENV['GITHUB_CLIENT_SECRET_RECEIVED']
-    # end
     OAuth2::Client.new(ENV['GITHUB_CLIENT_ID'], ENV['GITHUB_CLIENT_SECRET'],
       {
         :site => 'https://api.github.com',
@@ -129,8 +126,9 @@ get %r{^/(received|organization)/return/$} do |variety|
     access_token = consumer.auth_code.get_token(params[:code],
                           :redirect_uri => url("/#{settings.variety}/return/"))
   rescue OAuth2::Error => e
-    return "OAuth2 error: #{$!}"
-    # redirect session[:bergcloud_error_url]
+    # Debugging:
+    # return "OAuth2 error: #{$!}"
+    redirect session[:bergcloud_error_url]
   end
 
   if settings.variety == 'organization'
