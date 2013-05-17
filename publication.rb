@@ -25,7 +25,14 @@ helpers do
   end
 
   def consumer
-    OAuth2::Client.new(ENV['GITHUB_CLIENT_ID'], ENV['GITHUB_CLIENT_SECRET'],
+    if settings.variety == 'organization'
+      github_client_id = ENV['GITHUB_CLIENT_ID_ORGANIZATION']
+      github_client_secret = ENV['GITHUB_CLIENT_SECRET_ORGANIZATION']
+    else
+      github_client_id = ENV['GITHUB_CLIENT_ID_RECEIVED']
+      github_client_secret = ENV['GITHUB_CLIENT_SECRET_RECEIVED']
+    end
+    OAuth2::Client.new(github_client_id, github_client_secret,
       {
         :site => 'https://api.github.com',
         :authorize_url => 'https://github.com/login/oauth/authorize',
