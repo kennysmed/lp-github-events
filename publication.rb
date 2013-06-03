@@ -37,8 +37,8 @@ helpers do
 
   # Make a github client instance when the user is going through the OAuth process.
   def consumer
-    github = Github.new(:client_id => ENV['GITHUB_CLIENT_ID'],
-                        :client_secret => ENV['GITHUB_CLIENT_SECRET'])
+    Github.new(:client_id => ENV['GITHUB_CLIENT_ID'],
+                :client_secret => ENV['GITHUB_CLIENT_SECRET'])
   end
 
   # Make a github client instance using the stored access_token.
