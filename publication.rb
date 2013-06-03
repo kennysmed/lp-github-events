@@ -1,6 +1,5 @@
 # coding: utf-8
-require 'json'
-require 'oauth2'
+require 'github_api'
 require 'sinatra'
 
 enable :sessions
@@ -33,58 +32,64 @@ helpers do
     settings.variety = variety if settings.valid_varieties.include?(variety)
   end
 
+  ########################################################################
+  # Wrappers for using the github api.
+
+  # Make a github client instance when the user is going through the OAuth process.
   def consumer
-    OAuth2::Client.new(ENV['GITHUB_CLIENT_ID'], ENV['GITHUB_CLIENT_SECRET'],
-      {
-        :site => 'https://api.github.com',
-        :authorize_url => 'https://github.com/login/oauth/authorize',
-        :token_url => 'https://github.com/login/oauth/access_token'
-      }
-    )
+    github = Github.new(:client_id => ENV['GITHUB_CLIENT_ID'],
+                        :client_secret => ENV['GITHUB_CLIENT_SECRET'])
   end
 
-  ########################################################################
-  # Helpers for fetching data.
+  # Make a github client instance using the stored access_token.
+  def github_from_access_token(access_token)
+    begin
+      return Github.new oauth_token: access_token
+    rescue Github::Error::GithubError => error
+      halt 500, "Something went wrong when authenticating with the access_token: #{error}"
+    end
+  end
 
   # Get data about a GitHub user.
-  def get_user_data(request)
+  # github is a Github client instance.
+  def get_user_data(github)
     begin
-      data = request.get('/user')
-    rescue OAuth2::Error => error
+      return github.users.get
+    rescue Github::Error::GithubError => error
       halt 500, "Something went wrong fetching user data: #{error}"
     end
-    JSON.parse(data.body)
   end
 
   # Get the list of a GitHub user's organizations.
-  def get_users_organizations(request, user_login)
+  # github is a Github client instance.
+  def get_users_organizations(github)
     begin
-      data = request.get("/users/#{user_login}/orgs")
-    rescue OAuth2::Error => error
-      halt 500, "Something went wrong fetching organizations for user '#{user_login}': #{error}"
+      return github.orgs.list
+    rescue Github::Error::GithubError => error
+      halt 500, "Something went wrong fetching organizations for the user: #{error}"
     end
-    JSON.parse(data.body)
   end
 
   # Get one page of events for a GitHub user, or a particular organization,
   # from the user's point of view.
   # If organization_login isn't supplied, it's the former.
-  def get_users_events(request, user_login, organization_login=nil)
-    url = "/users/#{user_login}/received_events"
-    error_msg = "Something went wrong fetching events for user '#{user_login}'"
-
+  # github is a Github client instance.
+  def get_users_events(github, organization_login=nil)
+    error_msg = "Something went wrong fetching events for the user"
     if organization_login
-      url = "/users/#{user_login}/events/orgs/#{organization_login}"
       error_msg += " and organization '#{organization_login}'"
     end
 
     begin
-      data = request.get(url)
-    rescue OAuth2::Error => error
+      if organization_login
+        return github.activity.events.user_org :org_name => organization_login
+      else
+        return github.activity.events.received
+      end
+    rescue Github::Error::GithubError => error
       error_msg += ": #{error}"
       halt 500, error_msg
     end
-    JSON.parse(data.body)
   end
 
   ########################################################################
@@ -157,7 +162,7 @@ get %r{^/(received|organization)/configure/$} do |variety|
   scope = settings.variety == 'organization' ? 'repo' : 'repo:status'
 
   # Send them to GitHub to approve us.
-  url = consumer.auth_code.authorize_url(
+  url = consumer.authorize_url(
     :redirect_uri => url("/#{settings.variety}/return/"),
     :scope => scope
   )
@@ -174,11 +179,11 @@ get %r{^/(received|organization)/return/$} do |variety|
   redirect session[:bergcloud_error_url] if !params[:code]
 
   begin
-    access_token = consumer.auth_code.get_token(params[:code],
+    access_token = consumer.get_token(params[:code],
                           :redirect_uri => url("/#{settings.variety}/return/"))
-  rescue OAuth2::Error => error
+  rescue Github::Error::GithubError => error
     # Debugging:
-    # return "OAuth2 error: #{error}"
+    # return "Github error: #{error}"
     redirect session[:bergcloud_error_url]
   end
 
@@ -203,11 +208,11 @@ end
 get '/organization/select-org/' do
   set_variety('organization')
 
-  request = OAuth2::AccessToken.new(consumer, session[:access_token]) 
+  github = github_from_access_token(session[:access_token])
 
-  @user = get_user_data(request)
+  @user = get_user_data(github)
 
-  @orgs = get_users_organizations(request, @user['login'])
+  @orgs = get_users_organizations(github)
 
   if session[:form_error]
     @form_error = session[:form_error]
@@ -226,11 +231,11 @@ post '/organization/select-org/' do
 
   if params[:organization]
     # Check it's a valid org.
-    request = OAuth2::AccessToken.new(consumer, session[:access_token]) 
+    github = github_from_access_token(session[:access_token])
 
-    @user = get_user_data(request)
+    @user = get_user_data(github)
 
-    @orgs = get_users_organizations(request, @user['login'])
+    @orgs = get_users_organizations(github)
 
     if @orgs.find {|org| org['login'] == params[:organization]}
       # Valid organization ID.
@@ -259,22 +264,22 @@ get %r{^/(received|organization)/edition/$} do |variety|
   etag Digest::MD5.hexdigest(params[:access_token] + Time.now.strftime('%M%H-%d%m%Y'))
   # etag Digest::MD5.hexdigest(params[:access_token] + Date.today.strftime('%d%m%Y'))
 
-  request = OAuth2::AccessToken.new(consumer, params[:access_token]) 
+  github = github_from_access_token(session[:access_token])
 
-  @user = get_user_data(request)
+  @user = get_user_data(github)
 
   if settings.variety == 'organization'
-    @orgs = get_users_organizations(request, @user['login'])
+    @orgs = get_users_organizations(github)
 
     if @orgs.find {|org| org['login'] == params[:organization]}
-      event_page = get_users_events(request, @user['login'], params[:organization])
+      event_page = get_users_events(github, params[:organization])
     else
       # The organization ID isn't one the user has access to.
       return 204, "User '#{@user['login']}' doesn't have access to organization '#{params[:organization]}'"
     end
   else
     # Fetch all events this user has received - no organizations:
-    event_page = get_users_events(request, @user['login'])
+    event_page = get_users_events(github)
   end
 
   # We only want events from the past 24 hours.
