@@ -37,14 +37,20 @@ helpers do
 
   # Make a github client instance when the user is going through the OAuth process.
   def consumer
-    Github.new(:client_id => ENV['GITHUB_CLIENT_ID'],
-                :client_secret => ENV['GITHUB_CLIENT_SECRET'])
+    Github.new(
+      :client_id => ENV['GITHUB_CLIENT_ID'],
+      :client_secret => ENV['GITHUB_CLIENT_SECRET']
+    )
   end
 
   # Make a github client instance using the stored access_token.
   def github_from_access_token(access_token)
     begin
-      return Github.new oauth_token: access_token
+      return Github.new(
+        :client_id => ENV['GITHUB_CLIENT_ID'],
+        :client_secret => ENV['GITHUB_CLIENT_SECRET'],
+        :oauth_token => access_token
+      )
     rescue Github::Error::GithubError => error
       halt 500, "Something went wrong when authenticating with the access_token: #{error}"
     end
@@ -74,17 +80,18 @@ helpers do
   # from the user's point of view.
   # If organization_login isn't supplied, it's the former.
   # github is a Github client instance.
-  def get_users_events(github, organization_login=nil)
-    error_msg = "Something went wrong fetching events for the user"
+  def get_users_events(github, user_login, organization_login=nil)
+    error_msg = "Something went wrong fetching events for user '#{user_login}'"
     if organization_login
       error_msg += " and organization '#{organization_login}'"
     end
 
     begin
       if organization_login
-        return github.activity.events.user_org :org_name => organization_login
+        return github.activity.events.user_org(:user => user_login,
+                                              :org_name => organization_login)
       else
-        return github.activity.events.received
+        return github.activity.events.received(user_login)
       end
     rescue Github::Error::GithubError => error
       error_msg += ": #{error}"
@@ -264,7 +271,7 @@ get %r{^/(received|organization)/edition/$} do |variety|
   etag Digest::MD5.hexdigest(params[:access_token] + Time.now.strftime('%M%H-%d%m%Y'))
   # etag Digest::MD5.hexdigest(params[:access_token] + Date.today.strftime('%d%m%Y'))
 
-  github = github_from_access_token(session[:access_token])
+  github = github_from_access_token(params[:access_token])
 
   @user = get_user_data(github)
 
@@ -272,14 +279,14 @@ get %r{^/(received|organization)/edition/$} do |variety|
     @orgs = get_users_organizations(github)
 
     if @orgs.find {|org| org['login'] == params[:organization]}
-      event_page = get_users_events(github, params[:organization])
+      event_page = get_users_events(github, @user['login'], params[:organization])
     else
       # The organization ID isn't one the user has access to.
       return 204, "User '#{@user['login']}' doesn't have access to organization '#{params[:organization]}'"
     end
   else
     # Fetch all events this user has received - no organizations:
-    event_page = get_users_events(github)
+    event_page = get_users_events(github, @user['login'])
   end
 
   # We only want events from the past 24 hours.
