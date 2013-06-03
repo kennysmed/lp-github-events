@@ -43,6 +43,53 @@ helpers do
     )
   end
 
+  ########################################################################
+  # Helpers for fetching data.
+
+  # Get data about a GitHub user.
+  def get_user_data(request)
+    begin
+      data = request.get('/user')
+    rescue OAuth2::Error => error
+      halt 500, "Something went wrong fetching user data: #{error}"
+    end
+    JSON.parse(data.body)
+  end
+
+  # Get the list of a GitHub user's organizations.
+  def get_users_organizations(request, user_login)
+    begin
+      data = request.get("/users/#{user_login}/orgs")
+    rescue OAuth2::Error => error
+      halt 500, "Something went wrong fetching organizations for user '#{user_login}': #{error}"
+    end
+    JSON.parse(data.body)
+  end
+
+  # Get one page of events for a GitHub user, or a particular organization,
+  # from the user's point of view.
+  # If organization_login isn't supplied, it's the former.
+  def get_users_events(request, user_login, organization_login=nil)
+    url = "/users/#{user_login}/received_events"
+    error_msg = "Something went wrong fetching events for user '#{user_login}'"
+
+    if organization_login
+      url = "/users/#{user_login}/events/orgs/#{organization_login}"
+      error_msg += " and organization '#{organization_login}'"
+    end
+
+    begin
+      data = request.get(url)
+    rescue OAuth2::Error => error
+      error_msg += ": #{error}"
+      halt 500, error_msg
+    end
+    JSON.parse(data.body)
+  end
+
+  ########################################################################
+  # Helpers used in templates.
+
   # So that we keep the title consistent in all the places.
   def format_title
     title = "GitHub Events"
@@ -105,10 +152,14 @@ get %r{^/(received|organization)/configure/$} do |variety|
   session[:bergcloud_return_url] = params['return_url']
   session[:bergcloud_error_url] = params['error_url']
 
+  # For individual public/private events, we just need 'repo:status' scope.
+  # For access to organizations we need the full 'repo' scope.
+  scope = settings.variety == 'organization' ? 'repo' : 'repo:status'
+
   # Send them to GitHub to approve us.
   url = consumer.auth_code.authorize_url(
     :redirect_uri => url("/#{settings.variety}/return/"),
-    :scope => 'repo:status' # Also use notifications?
+    :scope => scope
   )
   redirect url
 end
@@ -125,9 +176,9 @@ get %r{^/(received|organization)/return/$} do |variety|
   begin
     access_token = consumer.auth_code.get_token(params[:code],
                           :redirect_uri => url("/#{settings.variety}/return/"))
-  rescue OAuth2::Error => e
+  rescue OAuth2::Error => error
     # Debugging:
-    # return "OAuth2 error: #{$!}"
+    # return "OAuth2 error: #{error}"
     redirect session[:bergcloud_error_url]
   end
 
@@ -154,10 +205,9 @@ get '/organization/select-org/' do
 
   request = OAuth2::AccessToken.new(consumer, session[:access_token]) 
 
-  # We need the user's details:
-  @user = JSON.parse(request.get('/user').body)
+  @user = get_user_data(request)
 
-  @orgs = JSON.parse(request.get("/users/#{@user['login']}/orgs").body)
+  @orgs = get_users_organizations(request, @user['login'])
 
   if session[:form_error]
     @form_error = session[:form_error]
@@ -178,12 +228,11 @@ post '/organization/select-org/' do
     # Check it's a valid org.
     request = OAuth2::AccessToken.new(consumer, session[:access_token]) 
 
-    # We need the user's details:
-    @user = JSON.parse(request.get('/user').body)
+    @user = get_user_data(request)
 
-    @orgs = JSON.parse(request.get("/users/#{@user['login']}/orgs").body)
+    @orgs = get_users_organizations(request, @user['login'])
 
-    if @orgs.find {|org| org['id'] == params[:organization].to_i}
+    if @orgs.find {|org| org['login'] == params[:organization]}
       # Valid organization ID.
       query = URI.encode_www_form(
                               'config[access_token]' => session[:access_token],
@@ -207,39 +256,33 @@ get %r{^/(received|organization)/edition/$} do |variety|
   set_variety(variety)
 
   # Testing, always changing etag:
-  # etag Digest::MD5.hexdigest(params[:access_token] + Time.now.strftime('%M%H-%d%m%Y'))
-  etag Digest::MD5.hexdigest(params[:access_token] + Date.today.strftime('%d%m%Y'))
+  etag Digest::MD5.hexdigest(params[:access_token] + Time.now.strftime('%M%H-%d%m%Y'))
+  # etag Digest::MD5.hexdigest(params[:access_token] + Date.today.strftime('%d%m%Y'))
 
   request = OAuth2::AccessToken.new(consumer, params[:access_token]) 
 
-  # We need the user's details:
-  @user = JSON.parse(request.get('/user').body)
+  @user = get_user_data(request)
 
   if settings.variety == 'organization'
-    @orgs = JSON.parse(request.get("/users/#{@user['login']}/orgs").body)
+    @orgs = get_users_organizations(request, @user['login'])
 
-    puts @orgs
-
-    if @orgs.find {|org| org['id'] == params[:organization].to_i}
-      event_page = JSON.parse(request.get(
-        "/users/#{@user['login']}/events/orgs/#{params[:organization]}").body)
-
+    if @orgs.find {|org| org['login'] == params[:organization]}
+      event_page = get_users_events(request, @user['login'], params[:organization])
     else
       # The organization ID isn't one the user has access to.
-      return 204, "User #{@user['login']} doesn't have access to organization #{params[:organization]}"
+      return 204, "User '#{@user['login']}' doesn't have access to organization '#{params[:organization]}'"
     end
   else
-    # Fetch all events this user has received:
-    event_page = JSON.parse(request.get(
-                              "/users/#{@user['login']}/received_events").body)
+    # Fetch all events this user has received - no organizations:
+    event_page = get_users_events(request, @user['login'])
   end
 
   # We only want events from the past 24 hours.
   @events = Array.new
   time_now = Time.now.utc
-  event_page.each do |e|
-    if (time_now - Time.parse(e['created_at'])) <= 86400
-      @events << e
+  event_page.each do |ev|
+    if (time_now - Time.parse(ev['created_at'])) <= 86400
+      @events << ev
     else
       break
     end 

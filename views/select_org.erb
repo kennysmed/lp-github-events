@@ -75,7 +75,7 @@
       <% elsif @orgs.length == 1 %>
         <p class="config-intro">You're only a member of one organization on GitHub, <strong><%= @orgs[0]['login'] %></strong>, so you'll receive events for that on Little Printer.</p>
 
-        <input type="hidden" name="organization" value="<%= @orgs[0]['id'] %>" />
+        <input type="hidden" name="organization" value="<%= @orgs[0]['login'] %>" />
 
       <% else %>
         <p class="config-intro">Please choose which organization you want to view events for on your Little Printer.</p>
@@ -86,8 +86,8 @@
 
         <ul class="config-list">
           <% @orgs.each do |org| %>
-            <li class="config-list-item"><input type="radio" name="organization" value="<%= org['id'] %>" id="org-<%= org['id'] %>" />
-              <label for="org-<%= org['id'] %>"><img class="config-list-item-logo" src="<%= org['avatar_url'] %>" width="80" height="80" alt="Avatar for <%= org['login'] %>"> <%= org['login'] %></label>
+            <li class="config-list-item"><input type="radio" name="organization" value="<%= org['login'] %>" id="org-<%= org['login'] %>" />
+              <label for="org-<%= org['login'] %>"><img class="config-list-item-logo" src="<%= org['avatar_url'] %>" width="80" height="80" alt="Avatar for <%= org['login'] %>"> <%= org['login'] %></label>
             </li>
           <% end %>
         </ul>
