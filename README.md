@@ -27,7 +27,7 @@ eg, for a Heroku app, you'd do this, with your credentials in place:
 
     $ heroku config:set GITHUB_CLIENT_ID_USER=myuserclientid GITHUB_CLIENT_SECRET_USER=myuserclientsecret GITHUB_CLIENT_ID_ORGANIZATION=myorgclientid GITHUB_CLIENT_SECRET_ORGANIZATION=myorgclientid
 
-Set the `RACK_ENV` environment variable to either `production` or `development`.
+Set the `RACK_ENV` environment variable to either `production` or `development`. (Although when it's set to `development` on Heroku the app always times out when trying to start up... I've no idea why.)
 
 <sup>*</sup> Why do we need two different OAuth applications on GitHub? When authenticating a user with an application, the code must supply a [`scope`](http://developer.github.com/v3/oauth/#scopes), giving permissions to particular things. For simply showing a user's News Feed we only need `repo` access. But for accessing information about an organization we need the wider-ranging `repo:status`. We could ask for the latter in both cases, and stick with a single application, but this seems excessive for users who will only require the personal events. Hence, two applications, which we ask for different scopes.
 
