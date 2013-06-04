@@ -11,11 +11,6 @@ raise 'GITHUB_CLIENT_ID_ORGANIZATION is not set' if !ENV['GITHUB_CLIENT_ID_ORGAN
 raise 'GITHUB_CLIENT_SECRET_ORGANIZATION is not set' if !ENV['GITHUB_CLIENT_SECRET_ORGANIZATION']
 
 configure do
-  if settings.development?
-    # So we can see what's going wrong on Heroku.
-    set :show_exceptions, true
-  end
-
   # The different varieties of data we can display.
   # Each publication has a different variety.
   # The variety is the top-level directory.
@@ -367,7 +362,7 @@ get %r{^/(received|organization)/sample/$} do |variety|
   set_variety(variety)
 
   puts "HOLA"
-  
+
   @user = {
     'avatar_url' => url('img/avatar_user.jpg'),
     'login' => 'philgyford',
