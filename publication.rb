@@ -5,9 +5,10 @@ require 'sinatra'
 
 enable :sessions
 
-raise 'GITHUB_CLIENT_ID is not set' if !ENV['GITHUB_CLIENT_ID']
-raise 'GITHUB_CLIENT_SECRET is not set' if !ENV['GITHUB_CLIENT_SECRET']
-
+raise 'GITHUB_CLIENT_ID_USER is not set' if !ENV['GITHUB_CLIENT_ID_USER']
+raise 'GITHUB_CLIENT_SECRET_USER is not set' if !ENV['GITHUB_CLIENT_SECRET_USER']
+raise 'GITHUB_CLIENT_ID_ORGANIZATION is not set' if !ENV['GITHUB_CLIENT_ID_ORGANIZATION']
+raise 'GITHUB_CLIENT_SECRET_ORGANIZATION is not set' if !ENV['GITHUB_CLIENT_SECRET_ORGANIZATION']
 
 configure do
   if settings.development?
@@ -37,14 +38,30 @@ helpers do
     settings.variety = variety if settings.valid_varieties.include?(variety)
   end
 
+  def github_client_id
+    if settings.variety == 'organization'
+      return ENV['GITHUB_CLIENT_ID_ORGANIZATION']
+    else
+      return ENV['GITHUB_CLIENT_ID_USER']
+    end
+  end
+
+  def github_client_secret
+    if settings.variety == 'organization'
+      return ENV['GITHUB_CLIENT_SECRET_ORGANIZATION']
+    else
+      return ENV['GITHUB_CLIENT_SECRET_USER']
+    end
+  end
+
   ########################################################################
   # Wrappers for using the github api.
 
   # Make a github client instance when the user is going through the OAuth process.
   def consumer
     Github.new(
-      :client_id => ENV['GITHUB_CLIENT_ID'],
-      :client_secret => ENV['GITHUB_CLIENT_SECRET']
+      :client_id => github_client_id(),
+      :client_secret => github_client_secret()
     )
   end
 
@@ -52,8 +69,8 @@ helpers do
   def github_from_access_token(access_token)
     begin
       return Github.new(
-        :client_id => ENV['GITHUB_CLIENT_ID'],
-        :client_secret => ENV['GITHUB_CLIENT_SECRET'],
+        :client_id => github_client_id(),
+        :client_secret => github_client_secret(),
         :oauth_token => access_token
       )
     rescue Github::Error::GithubError => error
