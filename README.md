@@ -4,7 +4,7 @@ Two Little Printer publication that display events from the past 24 hours.
 
 One shows the contents of your personal GitHub News Feed ("received" events is how the GitHub API describes them). See a sample at http://remote.bergcloud.com/publications/149
 
-The other publication has an extra configuration step that lets the user choose an organization that they're part of on GitHub, and shows events for that.
+The other publication has an extra configuration step that lets the user choose an organization that they're part of on GitHub, and shows events for that. See a sample at http://remote.bergcloud.com/publications/161
 
 This is a Ruby + Sinatra app, which might be useful as a demonstration of authenticating a subscriber with their GitHub account via OAuth2. It uses the [`github_api`](https://github.com/peter-murach/github/) gem.
 
