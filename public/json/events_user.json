@@ -130,7 +130,9 @@
       "name": "jezdez/django_compressor"
     },
     "payload": {
-      "id": 296,
+      "issue": {
+        "id": 296
+      },
       "comment": {
         "body": "This is probably related to #226, I think.\n\nThis means that it probably works fine in production, when you collect all the static files in that CACHE dir and serve it from there? And that it fails in development?"
       }

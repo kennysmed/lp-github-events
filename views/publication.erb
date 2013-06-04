@@ -73,7 +73,7 @@
       }
       li:last-child {
         border-bottom: none;
-        padding-bottom: 33px;
+        padding-bottom: 35px;
         background: url(<%= url('/img/network.png') %>) 0 100% no-repeat;
       }
         p.comment {
@@ -95,7 +95,7 @@
       <p class="intro-desc">
         For
         <% if @organization %>
-          Organization <span class="user"><%= @organization['login'] %></span>
+          <span class="user"><%= @organization['name'] %></span> (<%= @organization['login'] %>)
         <% else %>
           <span class="user"><%= @user['name'] %></span> (<%= @user['login'] %>)
         <% end %>
@@ -166,7 +166,7 @@
             on <span class="repo"><%= format_repo(e['repo']['name']) %></span>
 
           <% when 'IssueCommentEvent' %>
-            commented on issue <span class="repo"><%= format_repo(e['repo']['name']) %>#<%= e['payload']['id'] %></span>
+            commented on issue <span class="repo"><%= format_repo(e['repo']['name']) %>#<%= e['payload']['issue']['id'] %></span>
             </p>
             <p class="comment"><%= truncate(e['payload']['comment']['body'], comment_length) %></p>
 

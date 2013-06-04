@@ -71,6 +71,17 @@ helpers do
     end
   end
 
+  # Get data about a GitHub organization.
+  # github is a Github client instance.
+  # orgnization_login is like 'bergcloud' or 'rig'.
+  def get_organization_data(github, organization_login)
+    begin
+      return github.orgs.get(organization_login)
+    rescue Github::Error::GithubError => error
+      halt 500, "Something went wrong fetching organization data: #{error}"
+    end
+  end
+
   # Get the list of a GitHub user's organizations.
   # github is a Github client instance.
   def get_users_organizations(github)
@@ -298,11 +309,14 @@ get %r{^/(received|organization)/edition/$} do |variety|
     # Make sure that the org we're getting events for is one that the user
     # has access for. And put it into @organization so we can access it in the
     # template.
-    @organization = @orgs.find {|org| org['login'] == settings.organization_login}
-    if @organization.nil?
+    org = @orgs.find {|org| org['login'] == settings.organization_login}
+    if org.nil?
       # The organization ID isn't one the user has access to.
       return 204, "User '#{@user['login']}' doesn't have access to organization '#{settings.organization_login}'"
     else
+      # org only contains some of the Organization's data. We need more
+      # (like the name), so...
+      @organization = get_organization_data(github, org.login)
       # Gets events for the organization.
       event_page = get_users_events(github, @user['login'], settings.organization_login)
     end
@@ -343,8 +357,9 @@ get %r{^/(received|organization)/sample/$} do |variety|
 
   if settings.variety == 'organization'
     @organization = {
+      'avatar_url' => url('img/avatar_organization.png'),
       'login' => 'bergcloud',
-      'avatar_url' => url('img/avatar_organization.png') 
+      'name' => 'BERG Cloud',
     }
     events_filename = 'events_organization.json'
   else
