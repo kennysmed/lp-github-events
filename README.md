@@ -2,7 +2,7 @@
 
 Two Little Printer publication that display events from the past 24 hours. 
 
-One shows the contents of your personal GitHub News Feed.  See a sample at http://remote.bergcloud.com/publications/149
+One shows the contents of your personal GitHub News Feed ("received" events is how the GitHub API describes them). See a sample at http://remote.bergcloud.com/publications/149
 
 The other publication has an extra configuration step that lets the user choose an organization that they're part of on GitHub, and shows events for that.
 
