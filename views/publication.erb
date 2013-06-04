@@ -2,7 +2,7 @@
 <meta charset="utf-8">
 <html>
 <head>
-  <title><% format_title %></title>
+  <title><% format_full_title %></title>
 
   <style type="text/css">
     body, h1, p, ul, li {
@@ -16,7 +16,7 @@
       font-family: Arial, sans-serif;
       font-size: 16px;
       margin-top: 10px;
-      margin-bottom: 15px;
+      margin-bottom: 10px;
     }
     .repo {
       white-space: nowrap;
@@ -38,51 +38,72 @@
       font-size: 22px;
       font-weight: bold;
       line-height: 26px;
-      background: url(<%= url('/img/network.png') %>) 0 0 no-repeat;
-      padding-top: 10px;
-      padding-bottom: 4px;
+      padding-bottom: 10px;
     }
     p {
       line-height: 20px;
     }
-    p.intro {
+    .intro {
       background: url(<%= url('/img/line.png') %>) 0 0 no-repeat;
       padding-top: 14px;
       padding-bottom: 6px;
     }
+      .intro-text {
+        display: inline-block;
+        width: 278px;
+        vertical-align: top;
+        margin-right: 10px;
+      }
+      .intro-avatar {
+        border: 1px solid #000;
+        display: inline-block;
+      }
     ul {
       background: url(<%= url('/img/line.png') %>) 0 0 no-repeat;
       padding-top: 16px;
     }
-    li {
-      list-style-type: none;
-      width: 374px;
-      overflow: hidden;
-      line-height: 20px;
-      padding-bottom: 10px;
-      border-bottom: 1px dotted #000;
-      margin-bottom: 9px;
-    }
-    li:last-child {
-      border-bottom: none;
-      padding-bottom: 15px;
-      background: url(<%= url('/img/line.png') %>) 0 100% no-repeat;
-    }
-    p.comment {
-      margin-left: 10px;
-      font-size: 14px;
-    }
-    .details {
-      font-style: italic;
-    }
+      li {
+        list-style-type: none;
+        width: 374px;
+        overflow: hidden;
+        line-height: 20px;
+        padding-bottom: 10px;
+        border-bottom: 1px dotted #000;
+        margin-bottom: 9px;
+      }
+      li:last-child {
+        border-bottom: none;
+        padding-bottom: 33px;
+        background: url(<%= url('/img/network.png') %>) 0 100% no-repeat;
+      }
+        p.comment {
+          margin-left: 10px;
+          font-size: 14px;
+        }
+          .details {
+            font-style: italic;
+          }
   </style>
 
 </head>
 <body>
 
-  <h1><%= format_title %></h1>
 
-  <p class="intro">For <span class="user"><%= @user['login'] %></span> from the past 24&nbsp;hours</p>
+  <div class="intro">
+    <div class="intro-text">
+      <h1><%= format_title %></h1>
+      <p class="intro-desc">
+        For
+        <% if @organization %>
+          Organization <span class="user"><%= @organization['login'] %></span>
+        <% else %>
+          <span class="user"><%= @user['name'] %></span> (<%= @user['login'] %>)
+        <% end %>
+        from the past 24&nbsp;hours
+      </p>
+    </div>
+    <img class="intro-avatar dither" src="<% if @organization %><%= @organization['avatar_url'] %><% else %><%= @user['avatar_url'] %><% end %>" width="80" height="80" alt="Avatar" />
+  </div>
 
   <%# How many words do we truncate long strings to? %>
   <% comment_length = 18 %>

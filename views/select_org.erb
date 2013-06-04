@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title><%= format_title %></title>
+  <title><%= format_full_title %></title>
   <style type="text/css">
     body {
       background: #F8F6F3;
@@ -65,7 +65,7 @@
 </head>
 <body>
   <div class="config">
-    <h1 class="config-title"><%= format_title %></title></h1>
+    <h1 class="config-title"><%= format_full_title %></title></h1>
 
     <form method="post" action="<%= url("/#{settings.variety}/select-org/") %>">
       

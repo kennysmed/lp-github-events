@@ -1,5 +1,6 @@
 # coding: utf-8
 require 'github_api'
+require 'json'
 require 'sinatra'
 
 enable :sessions
@@ -23,6 +24,10 @@ configure do
 
   # The default variety, which can be changed with different URLs.
   set :variety, 'received'
+
+  # If we're fetching data for an organization in /edition/, this will get set.
+  # eg, 'bergcloud'.
+  set :organization_login, nil
 end
 
 
@@ -104,7 +109,11 @@ helpers do
 
   # So that we keep the title consistent in all the places.
   def format_title
-    title = "GitHub Events"
+    "GitHub Events"
+  end
+
+  def format_full_title
+    title = format_title
     if settings.variety == 'organization'
       title += " for Organizations"
     end
@@ -129,7 +138,12 @@ helpers do
   # Used in the template for formatting repo names.
   def format_repo(name)
     user, repo = name.split('/')
-    return user + '/<span class="repo-name">' + repo + '</span>'
+    repo_html = '<span class="repo-name">' + repo + '</span>'
+    if settings.variety == 'organization' and user == settings.organization_login
+      return repo_html
+    else
+      return user + '/' + repo_html
+    end
   end
 end
 
@@ -274,18 +288,27 @@ get %r{^/(received|organization)/edition/$} do |variety|
   github = github_from_access_token(params[:access_token])
 
   @user = get_user_data(github)
+  @organization = nil
 
   if settings.variety == 'organization'
+    settings.organization_login = params[:organization]
+
     @orgs = get_users_organizations(github)
 
-    if @orgs.find {|org| org['login'] == params[:organization]}
-      event_page = get_users_events(github, @user['login'], params[:organization])
-    else
+    # Make sure that the org we're getting events for is one that the user
+    # has access for. And put it into @organization so we can access it in the
+    # template.
+    @organization = @orgs.find {|org| org['login'] == settings.organization_login}
+    if @organization.nil?
       # The organization ID isn't one the user has access to.
-      return 204, "User '#{@user['login']}' doesn't have access to organization '#{params[:organization]}'"
+      return 204, "User '#{@user['login']}' doesn't have access to organization '#{settings.organization_login}'"
+    else
+      # Gets events for the organization.
+      event_page = get_users_events(github, @user['login'], settings.organization_login)
     end
+
   else
-    # Fetch all events this user has received - no organizations:
+    # No organizations - fetch all events this user has received.
     event_page = get_users_events(github, @user['login'])
   end
 
@@ -293,7 +316,7 @@ get %r{^/(received|organization)/edition/$} do |variety|
   @events = Array.new
   time_now = Time.now.utc
   event_page.each do |ev|
-    if (time_now - Time.parse(ev['created_at'])) <= 86400
+    if (time_now - Time.parse(ev['created_at'])) <= 9986400
       @events << ev
     else
       break
@@ -312,176 +335,25 @@ end
 get %r{^/(received|organization)/sample/$} do |variety|
   set_variety(variety)
 
-  @user = {'login' => 'jherekc'}
-  @events = [
-    {
-      'actor' => {'login' => 'philgyford'},
-      'type' => 'CommitCommentEvent',
-      'repo' => {
-        'name' => 'bergcloud/how-many-people-in-space',
-      },
-      'payload' => {
-        'id' => 34827,
-        'comment' => {
-          'body' => "Good to see this in there at last. I'd also like to say a bit more so that we can be sure that long comments are displayed correctly."
-        }
-      }
-    },
-    {
-      'actor' => {'login' => 'alicebartlett'},
-      'type' => 'CreateEvent',
-      'repo' => {
-        'name' => 'bergcloud/lp-word-of-the-day',
-      },
-      'payload' => {
-        'ref_type' => 'branch',
-        'ref' => 'master',
-      }
-    },
-    {
-      'actor' => {'login' => 'philgyford'},
-      'type' => 'DeleteEvent',
-      'repo' => {
-        'name' => 'philgyford/samuelpepys-twitter',
-      },
-      'payload' => {
-        'ref_type' => 'branch',
-        'ref' => 'tester',
-      }
-    },
-    {
-      'actor' => {'login' => 'philgyford'},
-      'type' => 'DownloadEvent',
-      'repo' => {
-        'name' => 'philgyford/django-pepysdiary',
-      },
-    },
-    {
-      'actor' => {'login' => 'benterrett'},
-      'type' => 'FollowEvent',
-      'payload' => {
-        'target' => {
-          'login' => 'rex3000'
-        }
-      }
-    },
-    {
-      'actor' => {'login' => 'straup'},
-      'type' => 'ForkEvent',
-      'repo' => {
-        'name' => 'tomtaylor/noticings-iphone',
-      },
-      'payload' => {
-        'forkee' => 'straup/noticings-iphone',
-      },
-    },
-    {
-      'actor' => {'login' => 'straup'},
-      'type' => 'GistEvent',
-      'payload' => {
-        'action' => 'create',
-        'id' => 3973400
-      },
-    },
-    {
-      'actor' => {'login' => 'reinout'},
-      'type' => 'IssueCommentEvent',
-      'repo' => {
-        'name' => 'jezdez/django_compressor',
-      },
-      'payload' => {
-        'id' => 296,
-        'comment' => {
-          'body' => "This is probably related to #226, I think.\n\nThis means that it probably works fine in production, when you collect all the static files in that CACHE dir and serve it from there? And that it fails in development?"
-        }
-      },
-    },
-    {
-      'actor' => {'login' => 'manelclos'},
-      'type' => 'IssuesEvent',
-      'repo' => {
-        'name' => 'alex/django-taggit',
-      },
-      'payload' => {
-        'id' => 103,
-        'title' => "Related Field has invalid lookup: icontains\" in Admin when adding 'tags' to search_fields",
-      },
-    },
-    {
-      'actor' => {'login' => 'undermanager'},
-      'type' => 'MemberEvent',
-      'repo' => {
-        'name' => 'undermanager/georgemichael',
-      },
-      'payload' => {
-        'action' => 'added',
-        'member' => {'login' => 'benterrett'}
-      },
-    },
-    {
-      'actor' => {'login' => 'bergcloud'},
-      'type' => 'PublicEvent',
-      'repo' => {
-        'name' => 'bergcloud/lp_publication_hello_world',
-      },
-    },
-    {
-      'actor' => {'login' => 'alicebartlett'},
-      'type' => 'PullRequestEvent',
-      'repo' => {
-        'name' => 'bergcloud/lp_publication_hello_world',
-      },
-      'payload' => {
-        'action' => 'closed',
-        'number' => 2,
-        'pull_request' => {
-          'title' => "Update Bundler source to use https",
-          'merged' => true,
-          'commits' => 1,
-          'additions' => 2,
-          'deletions' => 2
-        }
-      },
-    },
-    {
-      'actor' => {'login' => 'randomecho'},
-      'type' => 'PullRequestReviewCommentEvent',
-      'repo' => {
-        'name' => 'github/developer.github.com',
-      },
-      'payload' => {
-        'comment' => {
-          'body' => "Well now it looks like there should be \"an elephant\" for some sober reason."
-        }
-      },
-    },
-    {
-      'actor' => {'login' => 'alicebartlett'},
-      'type' => 'PushEvent',
-      'repo' => {
-        'name' => 'bergcloud/lp-how-many-people-in-space',
-      },
-      'payload' => {
-        'ref' => 'ref/heads/master',
-        'size' => 13
-      },
-    },
-    {
-      'actor' => {'login' => 'mrkruger'},
-      'type' => 'TeamAddEvent',
-      'payload' => {
-        'team' => {'name' => 'krugeris'},
-        'user' => {'login' => 'artvanderlay'}
-      }
-    },
-    {
-      'actor' => {'login' => 'tomtaylor'},
-      'type' => 'WatchEvent',
-      'repo' => {
-        'name' => 'modeset/teabag'
-      }
+  @user = {
+    'avatar_url' => url('img/avatar_user.jpg'),
+    'login' => 'philgyford',
+    'name' => 'Phil Gyford',
+  }
+
+  if settings.variety == 'organization'
+    @organization = {
+      'login' => 'bergcloud',
+      'avatar_url' => url('img/avatar_organization.png') 
     }
-  ]
+    events_filename = 'events_organization.json'
+  else
+    @organization = nil
+    events_filename = 'events_user.json'
+  end
+
+  @events = JSON.parse( IO.read(Dir.pwd + '/public/json/'+events_filename) )
+
   content_type 'text/html; charset=utf-8'
   erb :publication
 end
