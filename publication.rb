@@ -309,14 +309,14 @@ get %r{^/(received|organization)/edition/$} do |variety|
     # Make sure that the org we're getting events for is one that the user
     # has access for. And put it into @organization so we can access it in the
     # template.
-    org = @orgs.find {|org| org['login'] == settings.organization_login}
-    if org.nil?
+    matched_org = @orgs.find {|org| org['login'] == settings.organization_login}
+    if matched_org.nil?
       # The organization ID isn't one the user has access to.
       return 204, "User '#{@user['login']}' doesn't have access to organization '#{settings.organization_login}'"
     else
       # org only contains some of the Organization's data. We need more
       # (like the name), so...
-      @organization = get_organization_data(github, org.login)
+      @organization = get_organization_data(github, matched_org.login)
       # Gets events for the organization.
       event_page = get_users_events(github, @user['login'], settings.organization_login)
     end
