@@ -29,7 +29,7 @@
     }
   },
   {
-    "actor": {"login": "philgyford"},
+    "actor": {"login": "billynomates"},
     "type": "CommitCommentEvent",
     "repo": {
       "name": "bergcloud/how-many-people-in-space"
@@ -98,10 +98,10 @@
     }
   },
   {
-    "actor": {"login": "philgyford"},
+    "actor": {"login": "jherekc"},
     "type": "DeleteEvent",
     "repo": {
-      "name": "philgyford/samuelpepys-twitter"
+      "name": "jherekc/mailchecker"
     },
     "payload": {
       "ref_type": "branch",
@@ -109,10 +109,10 @@
     }
   },
   {
-    "actor": {"login": "philgyford"},
+    "actor": {"login": "jherekc"},
     "type": "DownloadEvent",
     "repo": {
-      "name": "philgyford/django-pepysdiary"
+      "name": "jherekc/pdf-fixer"
     }
   },
   {
