@@ -309,9 +309,9 @@ end
 get %r{^/(received|organization)/edition/$} do |variety|
   set_variety(variety)
 
+  etag Digest::MD5.hexdigest(params[:access_token] + Date.today.strftime('%d%m%Y'))
   # Testing, always changing etag:
-  etag Digest::MD5.hexdigest(params[:access_token] + Time.now.strftime('%M%H-%d%m%Y'))
-  # etag Digest::MD5.hexdigest(params[:access_token] + Date.today.strftime('%d%m%Y'))
+  # etag Digest::MD5.hexdigest(params[:access_token] + Time.now.strftime('%M%H-%d%m%Y'))
 
   github = github_from_access_token(params[:access_token])
 
@@ -347,7 +347,7 @@ get %r{^/(received|organization)/edition/$} do |variety|
   @events = Array.new
   time_now = Time.now.utc
   event_page.each do |ev|
-    if (time_now - Time.parse(ev['created_at'])) <= 9986400
+    if (time_now - Time.parse(ev['created_at'])) <= 86400
       @events << ev
     else
       break
