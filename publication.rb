@@ -309,6 +309,8 @@ end
 get %r{^/(received|organization)/edition/$} do |variety|
   set_variety(variety)
 
+  puts "STARTING: #{settings.variety}"
+
   etag Digest::MD5.hexdigest(params[:access_token] + Date.today.strftime('%d%m%Y'))
   # Testing, always changing etag:
   # etag Digest::MD5.hexdigest(params[:access_token] + Time.now.strftime('%M%H-%d%m%Y'))
@@ -317,8 +319,10 @@ get %r{^/(received|organization)/edition/$} do |variety|
 
   @user = get_user_data(github)
   @organization = nil
+  puts "USER: #{@user['name']}"
 
   if settings.variety == 'organization'
+    puts "DOING ORGANIZATION"
     settings.organization_login = params[:organization]
 
     @orgs = get_users_organizations(github)
@@ -328,9 +332,11 @@ get %r{^/(received|organization)/edition/$} do |variety|
     # template.
     matched_org = @orgs.find {|org| org['login'] == settings.organization_login}
     if matched_org.nil?
+      puts "NO ORG ACCESS"
       # The organization ID isn't one the user has access to.
       return 204, "User '#{@user['login']}' doesn't have access to organization '#{settings.organization_login}'"
     else
+      puts "ORG: #{matched_org.login}"
       # org only contains some of the Organization's data. We need more
       # (like the name), so...
       @organization = get_organization_data(github, matched_org.login)
@@ -339,6 +345,7 @@ get %r{^/(received|organization)/edition/$} do |variety|
     end
 
   else
+    puts "DOING RECEIVED"
     # No organizations - fetch all events this user has received.
     event_page = get_users_events(github, @user['login'])
   end
@@ -354,9 +361,13 @@ get %r{^/(received|organization)/edition/$} do |variety|
     end 
   end
 
+  puts "NUM EVENTS: #{@events.length}"
+
   if @events.length == 0
+    puts "RETURNING 204"
     return 204, "User #{@user['login']} has no events to show today"
   end
+  puts "OUTPUTTING"
 
   content_type 'text/html; charset=utf-8'
   erb :publication
