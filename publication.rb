@@ -366,8 +366,6 @@ end
 get %r{^/(received|organization)/sample/$} do |variety|
   set_variety(variety)
 
-  puts "HOLA"
-  
   @user = {
     'avatar_url' => url('img/avatar_user.jpg'),
     'login' => 'philgyford',
@@ -385,9 +383,6 @@ get %r{^/(received|organization)/sample/$} do |variety|
     @organization = nil
     events_filename = 'events_user.json'
   end
-
-  puts "HELLO"
-  puts Dir.pwd
 
   @events = JSON.parse( IO.read(Dir.pwd + '/public/json/'+events_filename) )
 
