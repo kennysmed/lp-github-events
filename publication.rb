@@ -169,8 +169,11 @@ helpers do
 
   # Used in the template for truncating strings at word boundaries.
   def truncate(text, len, end_string='…')
-    words = text.split()
-    return words[0...len].join(' ') + (words.length > len ? end_string : '')
+    if text
+      words = text.split()
+      return words[0...len].join(' ') + (words.length > len ? end_string : '')
+    else
+      return text
     end
   end
 
