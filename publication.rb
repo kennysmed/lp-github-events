@@ -2,13 +2,9 @@
 require 'github_api'
 require 'json'
 require 'sinatra'
+require 'sinatra/config_file'
 
 enable :sessions
-
-raise 'GITHUB_CLIENT_ID_USER is not set' if !ENV['GITHUB_CLIENT_ID_USER']
-raise 'GITHUB_CLIENT_SECRET_USER is not set' if !ENV['GITHUB_CLIENT_SECRET_USER']
-raise 'GITHUB_CLIENT_ID_ORGANIZATION is not set' if !ENV['GITHUB_CLIENT_ID_ORGANIZATION']
-raise 'GITHUB_CLIENT_SECRET_ORGANIZATION is not set' if !ENV['GITHUB_CLIENT_SECRET_ORGANIZATION']
 
 configure do
   if settings.development?
@@ -29,6 +25,20 @@ configure do
   # If we're fetching data for an organization in /edition/, this will get set.
   # eg, 'bergcloud'.
   set :organization_login, nil
+
+  # If not present, we'll be using ENV settings.
+  config_file './config.yml'
+
+  if ENV['GITHUB_CLIENT_ID_ORGANIZATION'] != nil
+    set :github_client_id_organization, ENV['GITHUB_CLIENT_ID_ORGANIZATION']
+    set :github_client_secret_organization, ENV['GITHUB_CLIENT_SECRET_ORGANIZATION']
+  end
+
+  if ENV['GITHUB_CLIENT_ID_USER'] != nil
+    set :github_client_id_user, ENV['GITHUB_CLIENT_ID_USER']
+    set :github_client_secret_user, ENV['GITHUB_CLIENT_SECRET_USER']
+  end
+
 end
 
 
@@ -40,17 +50,17 @@ helpers do
 
   def github_client_id
     if settings.variety == 'organization'
-      return ENV['GITHUB_CLIENT_ID_ORGANIZATION']
+      settings.github_client_id_organization
     else
-      return ENV['GITHUB_CLIENT_ID_USER']
+      settings.github_client_id_user
     end
   end
 
   def github_client_secret
     if settings.variety == 'organization'
-      return ENV['GITHUB_CLIENT_SECRET_ORGANIZATION']
+      settings.github_client_secret_organization
     else
-      return ENV['GITHUB_CLIENT_SECRET_USER']
+      settings.github_client_secret_user
     end
   end
 
@@ -161,6 +171,7 @@ helpers do
   def truncate(text, len, end_string='…')
     words = text.split()
     return words[0...len].join(' ') + (words.length > len ? end_string : '')
+    end
   end
 
   # Used in the template for formatting repo names.

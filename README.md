@@ -16,7 +16,14 @@ You'll need to [register two OAuth applications on GitHub](https://github.com/se
 
 For each application, set both of its URLs to the top level of this site, shared by both of the publications, eg `http://my-app-name.herokuapp.com/`. 
 
-Once created, GitHub will supply you with an ID and Secret for each application, which our code expects to be in these environment variables:
+Once created, GitHub will supply you with an ID and Secret for each application. These can either be put in a `config.yml` file at the same level as `publication.rb`:
+ 
+    github_client_id_user: myuserclientid
+	github_client_secret_user: myuserclientsecret
+	github_client_id_organization: myorgclientid
+	github_client_secret_organization: myorgclientsecret
+
+Or else they can be in these environment variables:
 
     GITHUB_CLIENT_ID_USER
     GITHUB_CLIENT_SECRET_USER
@@ -25,7 +32,7 @@ Once created, GitHub will supply you with an ID and Secret for each application,
 
 eg, for a Heroku app, you'd do this, with your credentials in place:
 
-    $ heroku config:set GITHUB_CLIENT_ID_USER=myuserclientid GITHUB_CLIENT_SECRET_USER=myuserclientsecret GITHUB_CLIENT_ID_ORGANIZATION=myorgclientid GITHUB_CLIENT_SECRET_ORGANIZATION=myorgclientid
+    $ heroku config:set GITHUB_CLIENT_ID_USER=myuserclientid GITHUB_CLIENT_SECRET_USER=myuserclientsecret GITHUB_CLIENT_ID_ORGANIZATION=myorgclientid GITHUB_CLIENT_SECRET_ORGANIZATION=myorgclientsecret
 
 Set the `RACK_ENV` environment variable to either `production` or `development`. (Although when it's set to `development` on Heroku the app always times out when trying to start up... I've no idea why.)
 
