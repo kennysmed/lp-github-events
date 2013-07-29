@@ -95,6 +95,7 @@ helpers do
       return github.users.get
     rescue Github::Error::GithubError => error
       p "ERROR"
+      p "code: #{error.http_status_code}"
       p error
       halt 500, "Something went wrong fetching user data: #{error.message}"
     end
