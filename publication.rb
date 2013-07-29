@@ -325,9 +325,9 @@ get %r{^/(received|organization)/edition/$} do |variety|
 
   puts "STARTING: #{settings.variety}"
 
-  etag Digest::MD5.hexdigest(params[:access_token] + Date.today.strftime('%d%m%Y'))
+  #etag Digest::MD5.hexdigest(params[:access_token] + Date.today.strftime('%d%m%Y'))
   # Testing, always changing etag:
-  # etag Digest::MD5.hexdigest(params[:access_token] + Time.now.strftime('%M%H-%d%m%Y'))
+  etag Digest::MD5.hexdigest(params[:access_token] + Time.now.strftime('%M%H-%d%m%Y'))
 
   github = github_from_access_token(params[:access_token])
 
