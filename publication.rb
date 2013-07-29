@@ -75,6 +75,16 @@ helpers do
     )
   end
 
+  # I'm not 100% sure if Github::Error::GithubError always has a status code.
+  # If not, we'll return 500.
+  def error_code(github_error)
+    if github_error.respond_to?('http_status_code')
+      github_error.http_status_code
+    else
+      500
+    end
+  end
+
   # Make a github client instance using the stored access_token.
   def github_from_access_token(access_token)
     begin
@@ -84,7 +94,7 @@ helpers do
         :oauth_token => access_token
       )
     rescue Github::Error::GithubError => error
-      halt 500, "Something went wrong when authenticating with the access_token: #{error.message}"
+      halt error_code(error), "Something went wrong when authenticating with the access_token: #{error.message}"
     end
   end
 
@@ -94,10 +104,7 @@ helpers do
     begin
       return github.users.get
     rescue Github::Error::GithubError => error
-      p "ERROR"
-      p "code: #{error.http_status_code}"
-      p error
-      halt 500, "Something went wrong fetching user data: #{error.message}"
+      halt error_code(error), "Something went wrong fetching user data: #{error.message}"
     end
   end
 
@@ -108,7 +115,7 @@ helpers do
     begin
       return github.orgs.get(organization_login)
     rescue Github::Error::GithubError => error
-      halt 500, "Something went wrong fetching organization data: #{error.message}"
+      halt error_code(error), "Something went wrong fetching organization data: #{error.message}"
     end
   end
 
@@ -118,7 +125,7 @@ helpers do
     begin
       return github.orgs.list
     rescue Github::Error::GithubError => error
-      halt 500, "Something went wrong fetching organizations for the user: #{error.message}"
+      halt error_code(error), "Something went wrong fetching organizations for the user: #{error.message}"
     end
   end
 
@@ -141,7 +148,7 @@ helpers do
       end
     rescue Github::Error::GithubError => error
       error_msg += ": #{error.message}"
-      halt 500, error_msg
+      halt error_code(error), error_msg
     end
   end
 
@@ -190,6 +197,29 @@ helpers do
       return user + '/' + repo_html
     end
   end
+end
+
+
+error 400 do
+  @message = body[0]
+  erb :error, :layout => :layout_publication
+end
+
+error 401..403 do
+  redirect to(url('/auth-revoked/')), 302
+end
+
+error 404..500 do
+  @message = body[0]
+  erb :error, :layout => :layout_publication
+end
+
+
+# The user gets this version of the publication if they've revoked
+# authentication with GitHub. We want to tell them they should unsubscribe.
+get '/auth-revoked/' do
+  etag Digest::MD5.hexdigest('auth-revoked' + Date.today.strftime('%d%m%Y'))
+  erb :auth_revoked, :layout => :layout_publication
 end
 
 
@@ -249,7 +279,7 @@ get %r{^/(received|organization)/return/$} do |variety|
                           :redirect_uri => url("/#{settings.variety}/return/"))
   rescue Github::Error::GithubError => error
     # Debugging:
-    # return "Github error: #{error.message}"
+    # return "Github error: #{error_code(error)} - #{error.message}"
     redirect session[:bergcloud_error_url]
   end
 
@@ -339,7 +369,6 @@ get %r{^/(received|organization)/edition/$} do |variety|
   puts "USER: #{@user['name']}"
 
   if settings.variety == 'organization'
-    puts "DOING ORGANIZATION"
     settings.organization_login = params[:organization]
 
     @orgs = get_users_organizations(github)
@@ -349,11 +378,9 @@ get %r{^/(received|organization)/edition/$} do |variety|
     # template.
     matched_org = @orgs.find {|org| org['login'] == settings.organization_login}
     if matched_org.nil?
-      puts "NO ORG ACCESS"
       # The organization ID isn't one the user has access to.
       return 204, "User '#{@user['login']}' doesn't have access to organization '#{settings.organization_login}'"
     else
-      puts "ORG: #{matched_org.login}"
       # org only contains some of the Organization's data. We need more
       # (like the name), so...
       @organization = get_organization_data(github, matched_org.login)
@@ -362,7 +389,6 @@ get %r{^/(received|organization)/edition/$} do |variety|
     end
 
   else
-    puts "DOING RECEIVED"
     # No organizations - fetch all events this user has received.
     event_page = get_users_events(github, @user['login'])
   end
@@ -378,16 +404,14 @@ get %r{^/(received|organization)/edition/$} do |variety|
     end 
   end
 
-  puts "NUM EVENTS: #{@events.length}"
+  puts "NUM EVENTS: #{@events.length} for #{@user['name']}"
 
   if @events.length == 0
-    puts "RETURNING 204"
     return 204, "User #{@user['login']} has no events to show today"
   end
-  puts "OUTPUTTING"
 
   content_type 'text/html; charset=utf-8'
-  erb :publication
+  erb :publication, :layout => :layout_publication
 end
 
 
@@ -415,7 +439,7 @@ get %r{^/(received|organization)/sample/$} do |variety|
   @events = JSON.parse( IO.read(Dir.pwd + '/public/json/'+events_filename) )
 
   content_type 'text/html; charset=utf-8'
-  erb :publication
+  erb :publication, :layout => :layout_publication
 end
 
 
