@@ -84,7 +84,7 @@ helpers do
         :oauth_token => access_token
       )
     rescue Github::Error::GithubError => error
-      halt 500, "Something went wrong when authenticating with the access_token: #{error}"
+      halt 500, "Something went wrong when authenticating with the access_token: #{error.message}"
     end
   end
 
@@ -94,7 +94,7 @@ helpers do
     begin
       return github.users.get
     rescue Github::Error::GithubError => error
-      halt 500, "Something went wrong fetching user data: #{error}"
+      halt 500, "Something went wrong fetching user data: #{error.message}"
     end
   end
 
@@ -105,7 +105,7 @@ helpers do
     begin
       return github.orgs.get(organization_login)
     rescue Github::Error::GithubError => error
-      halt 500, "Something went wrong fetching organization data: #{error}"
+      halt 500, "Something went wrong fetching organization data: #{error.message}"
     end
   end
 
@@ -115,7 +115,7 @@ helpers do
     begin
       return github.orgs.list
     rescue Github::Error::GithubError => error
-      halt 500, "Something went wrong fetching organizations for the user: #{error}"
+      halt 500, "Something went wrong fetching organizations for the user: #{error.message}"
     end
   end
 
@@ -137,7 +137,7 @@ helpers do
         return github.activity.events.received(user_login)
       end
     rescue Github::Error::GithubError => error
-      error_msg += ": #{error}"
+      error_msg += ": #{error.message}"
       halt 500, error_msg
     end
   end
@@ -246,7 +246,7 @@ get %r{^/(received|organization)/return/$} do |variety|
                           :redirect_uri => url("/#{settings.variety}/return/"))
   rescue Github::Error::GithubError => error
     # Debugging:
-    # return "Github error: #{error}"
+    # return "Github error: #{error.message}"
     redirect session[:bergcloud_error_url]
   end
 
