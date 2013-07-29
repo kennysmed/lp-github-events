@@ -201,8 +201,7 @@ end
 
 
 error 400 do
-  @message = body[0]
-  erb :error, :layout => :layout_publication
+  body[0]
 end
 
 error 401..403 do
@@ -210,8 +209,7 @@ error 401..403 do
 end
 
 error 404..500 do
-  @message = body[0]
-  erb :error, :layout => :layout_publication
+  body[0]
 end
 
 
