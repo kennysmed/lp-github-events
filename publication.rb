@@ -94,6 +94,8 @@ helpers do
     begin
       return github.users.get
     rescue Github::Error::GithubError => error
+      p "ERROR"
+      p error
       halt 500, "Something went wrong fetching user data: #{error.message}"
     end
   end
