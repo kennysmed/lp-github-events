@@ -76,7 +76,7 @@
             on <span class="repo"><%= format_repo(e['repo']['name']) %></span>
 
           <% when 'IssueCommentEvent' %>
-            commented on issue <span class="repo"><%= format_repo(e['repo']['name']) %>#<%= e['payload']['issue']['id'] %></span>
+            commented on issue <span class="repo"><%= format_repo(e['repo']['name']) %>#<%= e['payload']['issue']['number'] %></span>
             </p>
             <p class="comment"><%= truncate(e['payload']['comment']['body'], comment_length) %></p>
 
