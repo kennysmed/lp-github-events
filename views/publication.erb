@@ -126,18 +126,24 @@
             </p>
             <p class="comment"><span class="details">(<%= pluralize(e['payload']['size'], 'commit') %>)</span>
 
-          <% when 'TeamAddEvent' %>
-            <%# Not sure if this formatting is right %>
-            added
-            <% if e['payload']['user'] %>
-              <span class="actor"><%= e['payload']['user']['login'] %></span>
-            <% elsif e['payload']['repo'] %>
-              <span class="repo"><%= e['payload']['repo']['name'] %></span>
-            <% end %>
-            to <span class="actor"><%= e['payload']['team']['name'] %></span>
+        <% when 'ReleaseEvent' %>
+          released <%= e['payload']['release']['name'] %> at <span class="repo"><%= format_repo(e['repo']['name']) %> 
 
-          <% when 'WatchEvent' %>
-            starred <span class="repo"><%= format_repo(e['repo']['name']) %></span>
+        <% when 'TeamAddEvent' %>
+          <%# Not sure if this formatting is right %>
+          added
+          <% if e['payload']['user'] %>
+            <span class="actor"><%= e['payload']['user']['login'] %></span>
+          <% elsif e['payload']['repo'] %>
+            <span class="repo"><%= e['payload']['repo']['name'] %></span>
+          <% end %>
+          to <span class="actor"><%= e['payload']['team']['name'] %></span>
+
+        <% when 'WatchEvent' %>
+          starred <span class="repo"><%= format_repo(e['repo']['name']) %></span>
+
+        <% else %>
+          [Unrecognised activity]
 
         <% end %>
         </p>
